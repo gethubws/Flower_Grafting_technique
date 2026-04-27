@@ -1,77 +1,149 @@
-# Phase 1 开发进度文档
+# Phase 1 开发完成说明
 
 > 项目：花语嫁接师（Flower Grafting Master）
-> 开始时间：2026-04-27
-> 总开发策略：将 Phase 1 拆分为 7 个子部分，逐块完成并验证
+> 完成时间：2026-04-27
+> 状态：✅ 全部完成，可进行端到端游戏
 
 ---
 
-## Phase 1 子部分划分
+## Phase 1 架构总览
 
-| # | 子部分 | 范围 | 状态 |
-|---|--------|------|------|
-| 1 | Schema & Infrastructure | Prisma Schema 更新、Migration、Seed、Config Modules、Enums、JWT Guard | ✅ 完成 |
-| 2 | User Module | 注册/登录/用户信息、JWT 签发、资产操作 | ✅ 完成 |
-| 3 | Shop & Garden | 种子商店、花园种植/生长 | ✅ 完成 |
-| 4 | Fusion Core | 嫁接核心算法、事务、奖励、失败处理 | ✅ 完成 |
-| 5 | AI Gateway (Python) | L3 占位图、MinIO 上传、Health check | ✅ 完成 |
-| 6 | WebSocket & Queue | Socket.io 推送、HTTP 同步调 AI Gateway | ✅ 完成 |
-| 7 | Frontend | React+Phaser 全鼠标操作花园 + 嫁接界面 | ✅ 完成 |
-| 7.1 | 种子堆叠 | 同名种子合并显示数量 ×N，种一棵减一 | ✅ 完成 |
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    前端 (React + Phaser)                      │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │         Phaser Canvas (1024×768, SD 背景)          │      │
+│  │    [ 花盆0 ] [ 花盆1 ] [ 花盆2 ]                   │      │
+│  │    [ 花盆3 ] [ 花盆4 ] [ 花盆5 ]                   │      │
+│  │    👤用户  ──────────  🛒商店           ← 浮动覆盖  │      │
+│  │         🌰种子袋  🧤手套  ⚗️融合        ← 底部工具栏 │      │
+│  └────────────────────────────────────────────────────┘      │
+│        │ HTTP REST                     │ Socket.io            │
+├────────┼───────────────────────────────┼──────────────────────┤
+│        ▼                               ▼                      │
+│  NestJS (port 3000)              FusionGateway               │
+│  ├─ AuthController              (room: user:<id>)            │
+│  ├─ UserController                                           │
+│  ├─ ShopController                │ HTTP sync                 │
+│  ├─ GardenController              ▼                           │
+│  └─ FusionController → AiGatewayService                      │
+│                              │                                │
+├──────────────────────────────┼────────────────────────────────┤
+│                              ▼                                │
+│            AI Gateway (Python FastAPI, port 8000)             │
+│            ├─ /health                                         │
+│            ├─ /generate (花朵图, SD Forge)                    │
+│            └─ /generate-background (花园背景)                  │
+│                              │                                │
+│                    SD Forge (animaPencilXL)                   │
+├───────────────────────────────────────────────────────────────┤
+│  Docker: PostgreSQL (:5432) · Redis (:6379) · MinIO (:9000)  │
+└───────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## ⚠️ 架构简化决策 (2026-04-27)
+## 已完成模块
 
-**原 Phase 1 文档设计：**
-- Fusion → BullMQ 入队 → Python 消费 → 生成图 → 回调 NestJS `POST /ai-gateway/callback` → Socket 推送
+### Part 1: Schema & Infrastructure ✅
+- 7 张数据表：User / Flower / GardenSlot / Seed / FusionLog / TransactionLog
+- Stage 枚举：SEED(0) → SEEDLING(1-29) → GROWING(30-69) → MATURE(70-99) → BLOOMING(100)
+- Rarity 权重：N:50% / R:30% / SR:15% / SSR:4% / UR:1%
+- JWT Guard 全局鉴权
 
-**简化方案（Phase 1 采用）：**
-- Fusion → HTTP 同步调 AI Gateway `POST /generate` → 拿到 imageUrl → 更新 Flower → Socket 推送
-- **原因**：Phase 1 目标是端到端快速跑通，BullMQ + 异步回调增加两个故障点，且 Python 消费 BullMQ 需要额外协议适配
-- **Phase 3 恢复**：当性能要求提升时，再引入 BullMQ 队列化异步处理
+### Part 2: User Module ✅
+| 端点 | 说明 |
+|------|------|
+| `POST /api/auth/register` | 注册 → JWT + 6 GardenSlots + 500g |
+| `POST /api/auth/login` | 同名登录（游客模式） |
+| `GET /api/user/me` | 个人信息 |
+| 原子金币/XP 操作 + TransactionLog |
 
-**受影响的文件：**
-- `ai-gateway/processor` → 不需要（Phase 1）
-- `POST /api/ai-gateway/callback` → 不需要（Phase 1）
-- `AiGatewayProcessor` (NestJS) → 不需要（Phase 1）
-- `BullModule` 注册 → 不需要（Phase 1）
+### Part 3: Shop & Garden ✅
+| 端点 | 说明 |
+|------|------|
+| `GET /api/shop/seeds` | 在售种子列表 |
+| `POST /api/shop/buy-seed` | 购买 → 扣金 → 创建 SEED Flower |
+| `POST /api/garden/plant` | **手动**种植到指定位置 (position 必填) |
+| `POST /api/garden/grow` | 浇水 +30% → 自动 Stage 升级 |
+| `GET /api/garden` | 6 槽位 + 花朵信息 |
+| `GET /api/garden/inventory` | 种子库存（按名分组+堆叠） |
+| `POST /api/garden/harvest` | 收获盛放花 → 奖励 |
+
+### Part 4: Fusion Core ✅
+- 基础成功率 75% ± 土壤 Buff - MATURE 惩罚
+- 加权随机珍稀度抽取
+- 原子去重合并 + 稀有度系统词
+- 首达双倍奖励检测
+- NORMAL/GRAVE 失败 + RECOVERING 冷却
+- FusionLog 无 FK 约束（亲本 consumedAt 标记）
+
+### Part 5: AI Gateway ✅
+- FastAPI + MinIO 上传
+- `/generate` — SD Forge 花朵图像
+- `/generate-background` — SD 花园背景
+- `USE_REAL_SD` 开关控制 L3 占位图 vs 真实 SD
+
+### Part 6: WebSocket + AI Integration ✅
+- Socket.io `FusionGateway`：房间推送 `fusion:complete`
+- 架构简化：HTTP 同步调用 AI Gateway（Phase 3 恢复队列）
+
+### Part 7: Frontend ✅
+- **全屏覆盖层布局**：Phaser 画布铺满，React 组件浮动覆盖
+- **工具栏**：🌰种子袋（选种→点花盆播种）、🧤手套（点盛放花收获）
+- **SD 集成**：花园背景图（SD 生成）、融合花朵图显示在花盆
+- 商店/花园面板：右上角浮动切换
+- Zustand 三 store：user / garden / fusion
+- Bridge 事件总线：Phaser ↔ React 通信
 
 ---
 
-## Part 1: Schema & Infrastructure
+## 交互流程
 
-### 设计决策（与 Phase 0 的差异）
+```
+注册 → 买种子 → 🌰选种 → 点花盆种植 → 💧浇水到 GROWING
+    → 选两朵花 → ⚗️融合 → SD 生成新花图 → 种入花盆
+    → 💧继续养到 BLOOMING → 🧤收获 → 💰+⭐
+```
 
-1. **User.email → 可空**：Phase 1 游客模式只需 name
-2. **Stage 枚举大写**：统一为 SEED/SEEDLING/GROWING/MATURE/BLOOMING/RECOVERING
-3. **新增 GardenSlot**：每个用户 6 个槽位（position 0-5），用户注册时自动创建
-4. **新增 TransactionLog**：所有金币变动都记录
-5. **新增 Seed**：商店种子数据，含 atomLibrary（JSON 格式）
-6. **Flower 新增字段**：isShopSeed（源自商店购买）、consumedAt（嫁接消耗时间）
-7. **FusionLog 新增字段**：failType（NORMAL/GRAVE）、isFirstTime（首次奖励标记）
+---
 
-### 文件清单
-- [x] `server/prisma/schema.prisma` — 更新（新增 GardenSlot / Seed / TransactionLog / 修改User/Flower/FusionLog）
-- [x] Migration 执行 — `20260427032653_phase1_init`
-- [x] `server/prisma/seed.ts` — 新建（5种种子：玫瑰/向日葵/百合/郁金香/蝴蝶兰）
-- [x] `server/src/config/prisma/prisma.module.ts` + `prisma.service.ts`
-- [x] `server/src/config/redis/redis.module.ts`
-- [x] `server/src/config/minio/minio.module.ts` + `minio.service.ts`
-- [x] `server/src/common/enums/index.ts` — Rarity/Stage/SoilType/FailType/TransactionType/CurrencyType/RitualType + 权重/奖励配置
-- [x] `server/src/common/guards/jwt.guard.ts` — JwtGuard + OptionalJwtGuard
-- [x] `server/src/app.module.ts` — 注册 Config/JWT/Prisma/Redis/MinIO + 全局 ValidationPipe
-- [x] nest build 编译通过 ✅
-- [x] Seed 数据入库验证 ✅
-- [x] 安装 minio npm 包
+## 融合数据
 
-### 数据库表清单（7 张）
-| Table | 说明 |
-|-------|------|
-| User | 用户（Email 可空、unionId 预留） |
-| Flower | 花（Stage 大写枚举、isShopSeed、consumedAt） |
-| GardenSlot | 花园槽位（userId+position 唯一、1:1 Flower） |
-| Seed | 商店种子（atomLibrary JSON） |
-| FusionLog | 嫁接日志（failType、isFirstTime、reward） |
-| TransactionLog | 交易流水 |
-| _prisma_migrations | 迁移记录 |
+| 参数 | 值 |
+|------|-------|
+| 基础成功率 | 75% |
+| LOAM 壤土 | ±0% |
+| HUMUS 腐殖土 | ±0%, 奖励+15% |
+| SANDY 沙土 | +5% |
+| CLAY 粘土 | +10% |
+| MATURE 惩罚 | -5%/株 |
+| N 奖励 | 50g + 10xp |
+| R 奖励 | 100g + 30xp |
+| SR 奖励 | 200g + 60xp |
+| SSR 奖励 | 500g + 150xp |
+| UR 奖励 | 1000g + 300xp |
+| 首达 | x2 |
+
+---
+
+## 收获奖励
+
+| 稀有度 | 金币 | 经验 |
+|--------|------|------|
+| N | 80 | 15 |
+| R | 150 | 30 |
+| SR | 300 | 60 |
+| SSR | 600 | 150 |
+| UR | 1200 | 300 |
+
+---
+
+## 启动方式
+
+```bash
+cd ~/flowerlang && bash start-dev.sh
+# Docker + AI GW:8000 + NestJS:3000 + Vite:5173
+```
+
+浏览器访问 `http://localhost:5173`
