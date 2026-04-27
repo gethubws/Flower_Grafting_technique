@@ -1,31 +1,47 @@
 #!/bin/bash
+# 花语嫁接师 — 全栈启动脚本
+# 在 WSL Ubuntu 中运行：chmod +x start-dev.sh && ./start-dev.sh
 set -e
 
-echo "=== [1/4] 启动基础设施 ==="
-docker compose up -d
+FLOWER_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-echo "=== [2/4] 启动 AI Gateway ==="
-cd ~/flowerlang/ai-gateway
+echo "🌺 花语嫁接师 — Phase 1 启动"
+echo "=============================="
+
+# 1. Docker 基础设施
+echo "[1/4] Docker 容器..."
+cd "$FLOWER_ROOT"
+docker compose up -d 2>/dev/null
+sleep 2
+echo "  ✅ PostgreSQL :5432 | Redis :6379 | MinIO :9000"
+
+# 2. AI Gateway
+echo "[2/4] AI Gateway (Python)..."
+cd "$FLOWER_ROOT/ai-gateway"
 source venv/bin/activate
 uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
-AI_PID=$!
+echo "  ✅ http://localhost:8000 (占位图模式)"
 
-echo "=== [3/4] 启动 NestJS 后端 ==="
-cd ~/flowerlang/server
-npm run start:dev &
-API_PID=$!
+# 3. NestJS 后端
+echo "[3/4] NestJS 后端..."
+cd "$FLOWER_ROOT/server"
+npx nest start &
+echo "  ✅ http://localhost:3000"
 
-echo "=== [4/4] 启动前端 ==="
-cd ~/flowerlang/web
-npm run dev &
-WEB_PID=$!
+# 4. 前端
+echo "[4/4] Vite 前端..."
+cd "$FLOWER_ROOT/web"
+npx vite --host 0.0.0.0 &
+sleep 3
 
 echo ""
-echo "服务已启动："
-echo "  前端:     http://localhost:5173"
-echo "  后端 API: http://localhost:3000"
-echo "  AI 网关:  http://localhost:8000"
-echo "  MinIO:    http://localhost:9001 (控制台)"
+echo "=============================="
+echo "  🌐 前端:    http://localhost:5173"
+echo "  📡 后端:    http://localhost:3000"
+echo "  🤖 AI:      http://localhost:8000/health"
+echo "  📦 MinIO:   http://localhost:9001 (flowerlang / flowerlang123)"
 echo ""
-echo "按 Ctrl+C 停止全部，或分别 kill $AI_PID $API_PID $WEB_PID"
+echo "  在 Windows 浏览器打开 http://localhost:5173 即可游玩"
+echo "  Ctrl+C 停止全部服务"
+echo "=============================="
 wait
