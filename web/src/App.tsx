@@ -37,10 +37,16 @@ const App: React.FC = () => {
 
     // 确保 DOM 容器存在
     const container = document.getElementById('game-container');
-    if (!container) return;
+    if (!container) {
+      console.error('game-container not found');
+      return;
+    }
 
+    console.log('Creating Phaser game, container:', container.offsetWidth, 'x', container.offsetHeight);
     const config = createGameConfig('game-container');
-    gameInstance.current = new Phaser.Game(config);
+    const game = new Phaser.Game(config);
+    gameInstance.current = game;
+    console.log('Phaser game created, canvas:', game.canvas?.width, 'x', game.canvas?.height);
 
     // After scene starts, load garden data
     setTimeout(async () => {
