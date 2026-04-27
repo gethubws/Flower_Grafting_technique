@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { bridge, BridgeEvent } from '../bridge';
+import { bridge, BridgeEvent } from '../../bridge';
 import type { GardenSlot } from '../../types';
 
 export class GardenScene extends Phaser.Scene {
