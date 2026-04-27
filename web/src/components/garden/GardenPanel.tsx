@@ -4,7 +4,7 @@ import { useGardenStore } from '../../stores/garden.store';
 import { useFusionStore } from '../../stores/fusion.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
 import { Button } from '../common/Button';
-import type { Flower } from '../../types';
+import type { GroupedSeedItem } from '../../types';
 
 export const GardenPanel: React.FC = () => {
   const slots = useGardenStore((s) => s.slots);
@@ -12,7 +12,7 @@ export const GardenPanel: React.FC = () => {
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const addToQueue = useFusionStore((s) => s.addToQueue);
   const removeFromQueue = useFusionStore((s) => s.removeFromQueue);
-  const [seeds, setSeeds] = useState<Flower[]>([]);
+  const [seeds, setSeeds] = useState<GroupedSeedItem[]>([]);
   const [planting, setPlanting] = useState<string | null>(null);
 
   const refresh = async () => {
@@ -26,14 +26,14 @@ export const GardenPanel: React.FC = () => {
     refresh();
   }, []);
 
-  const handlePlant = async (flowerId: string) => {
+  const handlePlant = async (seedItem: GroupedSeedItem) => {
     // 找第一个空槽位
     const emptySlot = slots.find((s) => !s.flower);
     if (!emptySlot) return alert('花园已满，没有空槽位了');
 
-    setPlanting(flowerId);
+    setPlanting(seedItem.name);
     try {
-      await gardenApi.plant(flowerId, emptySlot.position);
+      await gardenApi.plant(seedItem.sampleId, emptySlot.position);
       await refresh();
     } catch (e: any) {
       alert(e.response?.data?.message || '种植失败');
@@ -75,16 +75,17 @@ export const GardenPanel: React.FC = () => {
         <div className="mb-3">
           <h3 className="text-sm font-semibold text-amber-400 mb-2">🌰 种子库存</h3>
           {seeds.map((seed) => (
-            <div key={seed.id} className="flex items-center gap-2 p-2 rounded bg-amber-900/20 border border-amber-800/30 mb-1 text-sm">
+            <div key={seed.name} className="flex items-center gap-2 p-2 rounded bg-amber-900/20 border border-amber-800/30 mb-1 text-sm">
               <span>🌰</span>
               <span className="flex-1 text-white text-xs">{seed.name}</span>
+              <span className="text-amber-400 text-xs font-bold bg-amber-900/40 px-1.5 py-0.5 rounded">×{seed.count}</span>
               <Button
-                onClick={() => handlePlant(seed.id)}
-                disabled={planting === seed.id}
+                onClick={() => handlePlant(seed)}
+                disabled={planting === seed.name}
                 variant="primary"
                 className="text-xs px-2 py-0.5"
               >
-                {planting === seed.id ? '...' : '🌱 种植'}
+                {planting === seed.name ? '...' : '🌱 种植'}
               </Button>
             </div>
           ))}

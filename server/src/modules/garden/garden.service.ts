@@ -100,6 +100,7 @@ export class GardenService {
     // 找出所有 SEED 阶段且不在任何 GardenSlot 中的花
     const allSeeds = await this.prisma.flower.findMany({
       where: { ownerId: userId, stage: 'SEED', consumedAt: null },
+      orderBy: { createdAt: 'asc' },
     });
 
     // 筛选掉已在槽位中的
@@ -109,7 +110,19 @@ export class GardenService {
     });
     const plantedIds = new Set(slots.map((s) => s.flowerId!).filter(Boolean));
 
-    return allSeeds.filter((s) => !plantedIds.has(s.id));
+    const unplanted = allSeeds.filter((s) => !plantedIds.has(s.id));
+
+    // 按名称分组（堆叠）
+    const grouped: Record<string, { name: string; rarity: string; count: number; sampleId: string }> = {};
+    for (const seed of unplanted) {
+      const key = seed.name || '(未知)';
+      if (!grouped[key]) {
+        grouped[key] = { name: key, rarity: seed.rarity, count: 0, sampleId: seed.id };
+      }
+      grouped[key].count++;
+    }
+
+    return Object.values(grouped);
   }
 
   /**

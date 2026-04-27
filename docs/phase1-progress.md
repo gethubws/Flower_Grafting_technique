@@ -17,6 +17,7 @@
 | 5 | AI Gateway (Python) | L3 占位图、MinIO 上传、Health check | ✅ 完成 |
 | 6 | WebSocket & Queue | Socket.io 推送、HTTP 同步调 AI Gateway | ✅ 完成 |
 | 7 | Frontend | React+Phaser 全鼠标操作花园 + 嫁接界面 | ✅ 完成 |
+| 7.1 | 种子堆叠 | 同名种子合并显示数量 ×N，种一棵减一 | ✅ 完成 |
 
 ---
 

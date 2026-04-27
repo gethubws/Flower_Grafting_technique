@@ -1,10 +1,10 @@
 import client from './client';
-import type { GardenSlot, Flower } from '../types';
+import type { GardenSlot, Flower, GroupedSeedItem } from '../types';
 
 export const gardenApi = {
   getGarden: () => client.get<GardenSlot[]>('/garden').then((r) => r.data),
 
-  getSeedInventory: () => client.get<Flower[]>('/garden/inventory').then((r) => r.data),
+  getSeedInventory: () => client.get<GroupedSeedItem[]>('/garden/inventory').then((r) => r.data),
 
   plant: (flowerId: string, position: number) =>
     client.post<{ slot: number; flower: Flower }>('/garden/plant', { flowerId, position }).then((r) => r.data),

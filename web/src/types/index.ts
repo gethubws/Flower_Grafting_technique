@@ -82,3 +82,11 @@ export interface RegisterResponse {
   accessToken: string;
   user: User;
 }
+
+// 堆叠种子库存项
+export interface GroupedSeedItem {
+  name: string;
+  rarity: Rarity;
+  count: number;
+  sampleId: string;
+}
