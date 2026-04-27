@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './config/prisma/prisma.module';
 import { RedisModule } from './config/redis/redis.module';
 import { MinioModule } from './config/minio/minio.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -26,6 +27,9 @@ import { MinioModule } from './config/minio/minio.module';
     PrismaModule,
     RedisModule,
     MinioModule,
+
+    // 业务模块
+    UserModule,
   ],
   controllers: [AppController],
   providers: [
