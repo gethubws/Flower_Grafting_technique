@@ -33,7 +33,11 @@ const App: React.FC = () => {
 
   // Init Phaser
   useEffect(() => {
-    if (!isLoggedIn || !gameRef.current || gameInstance.current) return;
+    if (!isLoggedIn || gameInstance.current) return;
+
+    // 确保 DOM 容器存在
+    const container = document.getElementById('game-container');
+    if (!container) return;
 
     const config = createGameConfig('game-container');
     gameInstance.current = new Phaser.Game(config);

@@ -12,7 +12,6 @@ export class GardenScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#2d5a27');
     this.drawBackground();
     this.setupBridgeListeners();
   }
