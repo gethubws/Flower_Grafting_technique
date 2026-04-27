@@ -1,8 +1,5 @@
 import type { GardenSlot, Flower, FusionCompletePayload } from '../../types';
 
-/**
- * Phaser ↔ React 桥接事件总线
- */
 type Listener = (...args: any[]) => void;
 
 class Bridge {
@@ -24,28 +21,28 @@ class Bridge {
 
 export const bridge = new Bridge();
 
-// ========================
-// Event Names
-// ========================
 export const BridgeEvent = {
   // Phaser → React
-  SLOT_CLICKED: 'slotClicked',
-  FLOWER_DRAGGED: 'flowerDragged',
+  SLOT_CLICKED: 'slotClicked',       // slot position + flower data
+  POT_CLICKED: 'potClicked',         // empty pot clicked (position + flowerId or null)
 
   // React → Phaser
   REFRESH_GARDEN: 'refreshGarden',
   FUSION_RESULT: 'fusionResult',
+  TOOL_ACTIVATED: 'toolActivated',   // tells Phaser which tool is active
 } as const;
 
-// ========================
-// Event Payload Types
-// ========================
 export interface SlotClickedPayload {
   position: number;
   flower: Flower | null;
 }
 
-export interface FlowerDraggedPayload {
-  flowerId: string;
+export interface PotClickedPayload {
   position: number;
+  flowerId: string | null;
+  flower: Flower | null;
+}
+
+export interface ToolActivatedPayload {
+  tool: 'seed' | 'glove' | null;
 }

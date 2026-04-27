@@ -65,15 +65,18 @@ export class GardenService {
       );
     }
 
-    // 自动分配空槽位
+    // 自动分配空槽位（遍历 0-5 确保不漏）
     if (position === undefined) {
       const allSlots = await this.prisma.gardenSlot.findMany({
         where: { userId },
-        orderBy: { position: 'asc' },
+        select: { position: true, flowerId: true },
       });
-      const empty = allSlots.find((s) => !s.flowerId);
-      if (!empty) throw new BadRequestException('No empty garden slots available');
-      position = empty.position;
+      const occupied = new Set(allSlots.filter((s) => s.flowerId).map((s) => s.position));
+      const emptyPos = [0, 1, 2, 3, 4, 5].find((p) => !occupied.has(p));
+      if (emptyPos === undefined) {
+        throw new BadRequestException('No empty garden slots available');
+      }
+      position = emptyPos;
     }
 
     // 校验槽位存在且为空
