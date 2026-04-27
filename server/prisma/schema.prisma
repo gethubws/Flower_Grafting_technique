@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  gold      Int      @default(500)
+  diamond   Int      @default(0)
+  xp        Int      @default(0)
+  level     Int      @default(1)
+  createdAt DateTime @default(now())
+  flowers   Flower[]
+  logs      FusionLog[]
+}
+
+model Flower {
+  id         String   @id @default(uuid())
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id])
+  name       String?
+  parentAId  String?
+  parentBId  String?
+  rarity     String   // N/R/SR/SSR/UR
+  atoms      Json     // ["剑形叶","唇瓣卷曲"]
+  stage      String   // seed/seedling/growing/mature/blooming
+  progress   Float    @default(0) // 0~100
+  imageUrl   String?
+  isStable   Boolean  @default(false) // 是否奠基种
+  createdAt  DateTime @default(now())
+  logsA      FusionLog[] @relation("ParentA")
+  logsB      FusionLog[] @relation("ParentB")
+}
+
+model FusionLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  parentAId   String?
+  parentA     Flower?  @relation("ParentA", fields: [parentAId], references: [id])
+  parentBId   String?
+  parentB     Flower?  @relation("ParentB", fields: [parentBId], references: [id])
+  soil        String?
+  ritual      String?
+  resultRarity String
+  resultAtoms Json
+  success     Boolean
+  createdAt   DateTime @default(now())
+}

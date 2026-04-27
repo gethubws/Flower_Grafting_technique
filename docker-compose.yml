@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: fl-postgres
+    environment:
+      POSTGRES_USER: flower
+      POSTGRES_PASSWORD: flower123
+      POSTGRES_DB: flowerlang
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flower -d flowerlang"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fl-redis
+    ports:
+      - "6379:6379"
+
+  minio:
+    # ✅ 修复：使用官方最新稳定版，百分百存在
+    image: minio/minio:latest
+    container_name: fl-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: flowerlang
+      MINIO_ROOT_PASSWORD: flowerlang123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  pg_data:
+  minio_data:
