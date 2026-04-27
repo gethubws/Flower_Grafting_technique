@@ -8,6 +8,8 @@ import { PrismaModule } from './config/prisma/prisma.module';
 import { RedisModule } from './config/redis/redis.module';
 import { MinioModule } from './config/minio/minio.module';
 import { UserModule } from './modules/user/user.module';
+import { ShopModule } from './modules/shop/shop.module';
+import { GardenModule } from './modules/garden/garden.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { UserModule } from './modules/user/user.module';
 
     // 业务模块
     UserModule,
+    ShopModule,
+    GardenModule,
   ],
   controllers: [AppController],
   providers: [

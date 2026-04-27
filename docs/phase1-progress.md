@@ -11,8 +11,8 @@
 | # | 子部分 | 范围 | 状态 |
 |---|--------|------|------|
 | 1 | Schema & Infrastructure | Prisma Schema 更新、Migration、Seed、Config Modules、Enums、JWT Guard | ✅ 完成 |
-| 2 | User Module | 注册/登录/用户信息、JWT 签发、资产操作 | ⬜ 待开始 |
-| 3 | Shop & Garden | 种子商店、花园种植/生长 | ⬜ 待开始 |
+| 2 | User Module | 注册/登录/用户信息、JWT 签发、资产操作 | ✅ 完成 |
+| 3 | Shop & Garden | 种子商店、花园种植/生长 | 🔵 进行中 |
 | 4 | Fusion Core | 嫁接核心算法、事务、奖励、失败处理 | ⬜ 待开始 |
 | 5 | AI Gateway (Python) | L3 占位图、MinIO 上传、BullMQ 消费 | ⬜ 待开始 |
 | 6 | WebSocket & Queue | Socket.io 推送、BullMQ 队列、AI 回调 | ⬜ 待开始 |
