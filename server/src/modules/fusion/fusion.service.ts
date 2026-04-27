@@ -119,6 +119,18 @@ export class FusionService {
         },
       });
 
+      // 自动种植融合花到第一个空槽位
+      const emptySlot = await tx.gardenSlot.findFirst({
+        where: { userId, flowerId: null },
+        orderBy: { position: 'asc' },
+      });
+      if (emptySlot) {
+        await tx.gardenSlot.update({
+          where: { id: emptySlot.id },
+          data: { flowerId: flower.id },
+        });
+      }
+
       // 奖励计算
       const rewards = FUSION_REWARDS[rarity];
       const gold = isFirstTime
