@@ -94,6 +94,25 @@ export class GardenService {
   }
 
   /**
+   * 获取用户所有未种植的 SEED 阶段花（种子库存）
+   */
+  async getSeedInventory(userId: string) {
+    // 找出所有 SEED 阶段且不在任何 GardenSlot 中的花
+    const allSeeds = await this.prisma.flower.findMany({
+      where: { ownerId: userId, stage: 'SEED', consumedAt: null },
+    });
+
+    // 筛选掉已在槽位中的
+    const slots = await this.prisma.gardenSlot.findMany({
+      where: { userId, flowerId: { not: null } },
+      select: { flowerId: true },
+    });
+    const plantedIds = new Set(slots.map((s) => s.flowerId!).filter(Boolean));
+
+    return allSeeds.filter((s) => !plantedIds.has(s.id));
+  }
+
+  /**
    * 手动推进生长：progress += amount，按阈值自动切换 stage
    */
   async advanceGrowth(userId: string, flowerId: string, amount = 30) {

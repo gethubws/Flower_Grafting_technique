@@ -15,6 +15,13 @@ export class GardenController {
     return this.gardenService.getGarden(sub);
   }
 
+  @Get('inventory')
+  @UseGuards(JwtGuard)
+  async getSeedInventory(@Req() req: any) {
+    const { sub } = req.user as JwtPayload;
+    return this.gardenService.getSeedInventory(sub);
+  }
+
   @Post('plant')
   @UseGuards(JwtGuard)
   async plant(@Req() req: any, @Body() dto: PlantSeedDto) {
