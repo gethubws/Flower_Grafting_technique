@@ -13,6 +13,7 @@ export const ShopPanel: React.FC = () => {
   const user = useUserStore((s) => s.user);
   const updateGold = useUserStore((s) => s.updateGold);
   const setSlots = useGardenStore((s) => s.setSlots);
+  const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
 
   useEffect(() => {
     shopApi.getSeeds().then(setSeeds);
@@ -24,9 +25,10 @@ export const ShopPanel: React.FC = () => {
     try {
       await shopApi.buySeed(seed.id);
       updateGold(-seed.priceGold);
-      // Refresh garden
-      const garden = await gardenApi.getGarden();
+      // 同步刷新花园和库存
+      const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
       setSlots(garden);
+      setSeedInventory(inv);
       bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
     } catch (e: any) {
       alert(e.response?.data?.message || '购买失败');

@@ -1,13 +1,15 @@
 import { create } from 'zustand';
-import type { GardenSlot } from '../types';
+import type { GardenSlot, GroupedSeedItem } from '../types';
 
 interface GardenState {
   slots: GardenSlot[];
+  seedInventory: GroupedSeedItem[];
   selectedFlowerId: string | null;
   setSlots: (slots: GardenSlot[]) => void;
   updateSlot: (position: number, flower: GardenSlot['flower']) => void;
   removeFlower: (position: number) => void;
   selectFlower: (flowerId: string | null) => void;
+  setSeedInventory: (items: GroupedSeedItem[]) => void;
 }
 
 export const useGardenStore = create<GardenState>((set) => ({
@@ -18,6 +20,7 @@ export const useGardenStore = create<GardenState>((set) => ({
     flowerId: null,
     flower: null,
   })),
+  seedInventory: [],
   selectedFlowerId: null,
 
   setSlots: (slots) => set({ slots }),
@@ -37,4 +40,6 @@ export const useGardenStore = create<GardenState>((set) => ({
     })),
 
   selectFlower: (flowerId) => set({ selectedFlowerId: flowerId }),
+
+  setSeedInventory: (items) => set({ seedInventory: items }),
 }));

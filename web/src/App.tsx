@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const user = useUserStore((s) => s.user);
   const setSlots = useGardenStore((s) => s.setSlots);
+  const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const resultFlower = useFusionStore((s) => s.resultFlower);
   const setResult = useFusionStore((s) => s.setResult);
@@ -39,8 +40,9 @@ const App: React.FC = () => {
 
     // After scene starts, load garden data
     setTimeout(async () => {
-      const garden = await gardenApi.getGarden();
+      const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
       setSlots(garden);
+      setSeedInventory(inv);
       bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
     }, 800);
 

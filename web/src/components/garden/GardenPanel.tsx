@@ -8,17 +8,18 @@ import type { GroupedSeedItem } from '../../types';
 
 export const GardenPanel: React.FC = () => {
   const slots = useGardenStore((s) => s.slots);
+  const seeds = useGardenStore((s) => s.seedInventory);
   const setSlots = useGardenStore((s) => s.setSlots);
+  const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const addToQueue = useFusionStore((s) => s.addToQueue);
   const removeFromQueue = useFusionStore((s) => s.removeFromQueue);
-  const [seeds, setSeeds] = useState<GroupedSeedItem[]>([]);
   const [planting, setPlanting] = useState<string | null>(null);
 
   const refresh = async () => {
     const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
     setSlots(garden);
-    setSeeds(inv);
+    setSeedInventory(inv);
     bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
   };
 
