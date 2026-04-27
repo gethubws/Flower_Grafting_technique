@@ -71,8 +71,9 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full bg-[#1a1a2e]">
-        <p className="text-gray-400 animate-pulse">加载中...</p>
+      <div className="flex flex-col items-center justify-center w-full h-full bg-[#0a0a1a] gap-4">
+        <div className="text-4xl animate-bounce-soft">🌺</div>
+        <p className="text-gray-500 text-sm animate-pulse">加载中...</p>
       </div>
     );
   }
@@ -93,41 +94,50 @@ const App: React.FC = () => {
       {/* React UI Panel */}
       <div id="ui-panel" className="w-[360px] flex flex-col gap-4">
         {/* User Bar */}
-        <div className="flex items-center justify-between bg-[#1a1a2e] rounded-lg p-3 border border-[#0f3460]">
-          <div>
-            <span className="text-white font-bold">{user?.name}</span>
-            <span className="text-gray-500 text-xs ml-2">Lv.{user?.level}</span>
+        <div className="card p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+              {(user?.name || '?')[0]}
+            </div>
+            <div>
+              <div className="text-white font-bold text-sm">{user?.name}</div>
+              <div className="text-gray-500 text-xs">Lv.{user?.level}</div>
+            </div>
           </div>
-          <div className="flex gap-2 text-sm">
-            <span>💰 {user?.gold}</span>
-            <span>💎 {user?.diamond}</span>
-            <span>⭐ {user?.xp}</span>
+          <div className="flex gap-3 text-xs">
+            <span className="text-amber-400">💰 {user?.gold}</span>
+            <span className="text-cyan-400">💎 {user?.diamond}</span>
+            <span className="text-purple-400">⭐ {user?.xp}</span>
           </div>
         </div>
 
         {/* Socket result toast */}
         {resultFlower && (
-          <div className="bg-green-900/50 border border-green-700 rounded-lg p-3 text-center animate-bounce">
-            <p className="text-green-300 font-bold">🌺 嫁接完成！</p>
-            <p className="text-white">{resultFlower.rarity} 级新花已生成</p>
-            {resultFlower.isFirstTime && <p className="text-amber-400 text-sm">首达奖励！</p>}
+          <div className="bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-700/50 rounded-lg p-3 text-center animate-fade-in">
+            <p className="text-green-300 font-bold text-sm">🌺 嫁接完成！</p>
+            <p className="text-white text-xs">{resultFlower.rarity} 级新花已种入花园</p>
+            {resultFlower.isFirstTime && <p className="text-amber-400 text-xs mt-1">🎉 首达奖励！</p>}
           </div>
         )}
 
         {/* Tab Bar */}
-        <div className="flex gap-2">
+        <div className="flex bg-[#0d1117] rounded-lg p-1 gap-1">
           <button
             onClick={() => setPanelTab('garden')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              panelTab === 'garden' ? 'bg-[#533483] text-white' : 'bg-[#1a1a2e] text-gray-400 border border-[#0f3460]'
+            className={`tab-btn flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+              panelTab === 'garden'
+                ? 'active bg-[#1a1a2e] text-white shadow-lg'
+                : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             🌻 花园
           </button>
           <button
             onClick={() => setPanelTab('shop')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              panelTab === 'shop' ? 'bg-[#533483] text-white' : 'bg-[#1a1a2e] text-gray-400 border border-[#0f3460]'
+            className={`tab-btn flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+              panelTab === 'shop'
+                ? 'active bg-[#1a1a2e] text-white shadow-lg'
+                : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             🛒 商店
@@ -136,9 +146,9 @@ const App: React.FC = () => {
 
         {/* Fusion Queue Indicator */}
         {fusionQueue.length > 0 && (
-          <div className="bg-[#1a1a2e] border border-[#533483] rounded-lg p-2 text-center">
-            <span className="text-purple-300 text-sm">
-              ⚗️ 已选 {fusionQueue.length}/2
+          <div className="card p-2 text-center animate-pulse-glow border-purple-600/30">
+            <span className="text-purple-300 text-sm font-medium">
+              ⚗️ 嫁接队列 {fusionQueue.length}/2
             </span>
           </div>
         )}

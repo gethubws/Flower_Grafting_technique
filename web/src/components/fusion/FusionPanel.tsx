@@ -1,88 +1,98 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { fusionApi } from '../../api/fusion.api';
 import { gardenApi } from '../../api/garden.api';
-import { useUserStore } from '../../stores/user.store';
-import { useGardenStore } from '../../stores/garden.store';
 import { useFusionStore } from '../../stores/fusion.store';
+import { useGardenStore } from '../../stores/garden.store';
+import { useUserStore } from '../../stores/user.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
 import { Button } from '../common/Button';
-import type { FusionResponse } from '../../types';
+
+type SoilType = 'LOAM' | 'HUMUS' | 'SANDY' | 'CLAY';
+
+const soils: { key: SoilType; name: string; desc: string; emoji: string }[] = [
+  { key: 'LOAM', name: '壤土', desc: '基础土壤', emoji: '🟫' },
+  { key: 'HUMUS', name: '腐殖土', desc: '价值+15%', emoji: '🖤' },
+  { key: 'SANDY', name: '沙土', desc: '成功率+5%', emoji: '🟨' },
+  { key: 'CLAY', name: '粘土', desc: '成功率+10%', emoji: '🟥' },
+];
 
 export const FusionPanel: React.FC = () => {
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const clearQueue = useFusionStore((s) => s.clearQueue);
-  const setResponse = useFusionStore((s) => s.setResponse);
-  const isFusing = useFusionStore((s) => s.isFusing);
-  const setFusing = useFusionStore((s) => s.setFusing);
-  const slots = useGardenStore((s) => s.slots);
+  const setResult = useFusionStore((s) => s.setResult);
+  const setSlots = useGardenStore((s) => s.setSlots);
+  const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
   const updateGold = useUserStore((s) => s.updateGold);
+  const [soil, setSoil] = useState<SoilType>('LOAM');
+  const [fusing, setFusing] = useState(false);
 
-  if (fusionQueue.length < 2) {
-    return (
-      <div className="text-gray-500 text-sm text-center py-4">
-        {fusionQueue.length === 0
-          ? '拖拽或点击 ⚗️ 选择两株花进行嫁接'
-          : `已选 ${fusionQueue.length}/2 — 再选一株`}
-      </div>
-    );
-  }
+  if (fusionQueue.length === 0) return null;
 
-  const flowerA = slots.find((s) => s.flower?.id === fusionQueue[0])?.flower;
-  const flowerB = slots.find((s) => s.flower?.id === fusionQueue[1])?.flower;
-
-  const handleFuse = async (soil: string) => {
+  const handleFusion = async () => {
+    if (fusionQueue.length < 2) return;
     setFusing(true);
     try {
-      const res: FusionResponse = await fusionApi.fuse({
+      const res = await fusionApi.fuse({
         parentAId: fusionQueue[0],
         parentBId: fusionQueue[1],
-        soil: soil as any,
+        soil,
       });
-      setResponse(res);
-      if (res.success) {
-        if (res.reward) updateGold(res.reward.gold);
-        clearQueue();
-        // Refresh
-        const garden = await gardenApi.getGarden();
-        useGardenStore.getState().setSlots(garden);
-        bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
+      if (res.success && res.reward) {
+        updateGold(res.reward.gold);
       }
+      setResult({
+        flowerId: res.flowerId || '',
+        rarity: res.rarity || 'N',
+        atoms: res.atoms || [],
+        imageUrl: res.imageUrl || null,
+        reward: res.reward || { gold: 0, xp: 0 },
+        isFirstTime: res.isFirstTime || false,
+      });
+      clearQueue();
+      const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
+      setSlots(garden);
+      setSeedInventory(inv);
+      bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
     } catch (e: any) {
-      alert(e.response?.data?.message || '嫁接失败');
+      alert(e.response?.data?.message || '融合失败');
     }
     setFusing(false);
   };
 
   return (
-    <div>
-      <h2 className="text-lg font-bold text-white mb-3">⚗️ 嫁接操作</h2>
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <span className="text-xl">{flowerA?.name?.slice(0, 4) || '?'}</span>
-        <span className="text-2xl">×</span>
-        <span className="text-xl">{flowerB?.name?.slice(0, 4) || '?'}</span>
+    <div className="card p-3 animate-fade-in animate-pulse-glow">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-lg">⚗️</span>
+        <span className="text-white font-bold text-sm">嫁接融合</span>
+        <span className="text-purple-400 text-xs ml-auto">{fusionQueue.length}/2</span>
       </div>
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        {[
-          { soil: 'LOAM', name: '壤土', desc: '标准' },
-          { soil: 'HUMUS', name: '腐殖土', desc: '价值+15%' },
-          { soil: 'SANDY', name: '沙土', desc: '成功率+5%' },
-          { soil: 'CLAY', name: '粘土', desc: '成功率+10%' },
-        ].map((s) => (
-          <Button
-            key={s.soil}
-            onClick={() => handleFuse(s.soil)}
-            disabled={isFusing}
-            variant="secondary"
-            className="text-xs"
+
+      {/* Soil selection */}
+      <div className="grid grid-cols-2 gap-1.5 mb-3">
+        {soils.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSoil(s.key)}
+            className={`text-left p-1.5 rounded-lg text-xs transition-all ${
+              soil === s.key
+                ? 'bg-purple-900/50 border border-purple-500 text-white'
+                : 'bg-[#1a1a2e] border border-[#1a1a3e] text-gray-500 hover:border-[#533483]'
+            }`}
           >
-            {s.name}
-            <br />
-            <span className="text-gray-500">{s.desc}</span>
-          </Button>
+            <span className="mr-1">{s.emoji}</span>
+            <span className="font-medium">{s.name}</span>
+            <span className="block text-gray-600 ml-4">{s.desc}</span>
+          </button>
         ))}
       </div>
-      <Button onClick={clearQueue} variant="danger" disabled={isFusing} className="w-full">
-        取消选择
+
+      <Button
+        onClick={handleFusion}
+        disabled={fusionQueue.length < 2 || fusing}
+        variant="primary"
+        className="w-full"
+      >
+        {fusing ? '⚗️ 融合中...' : '✨ 开始融合'}
       </Button>
     </div>
   );

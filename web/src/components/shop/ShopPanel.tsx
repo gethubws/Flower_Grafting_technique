@@ -15,9 +15,7 @@ export const ShopPanel: React.FC = () => {
   const setSlots = useGardenStore((s) => s.setSlots);
   const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
 
-  useEffect(() => {
-    shopApi.getSeeds().then(setSeeds);
-  }, []);
+  useEffect(() => { shopApi.getSeeds().then(setSeeds); }, []);
 
   const handleBuy = async (seed: Seed) => {
     if (!user || user.gold < seed.priceGold) return;
@@ -25,7 +23,6 @@ export const ShopPanel: React.FC = () => {
     try {
       await shopApi.buySeed(seed.id);
       updateGold(-seed.priceGold);
-      // 同步刷新花园和库存
       const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
       setSlots(garden);
       setSeedInventory(inv);
@@ -37,28 +34,35 @@ export const ShopPanel: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-lg font-bold text-white mb-3">🛒 种子商店</h2>
+    <div className="animate-fade-in">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-lg">🛒</span>
+        <h2 className="text-lg font-bold text-white">种子商店</h2>
+      </div>
       <div className="space-y-2">
-        {seeds.map((seed) => (
-          <div
-            key={seed.id}
-            className="flex items-center gap-3 p-3 rounded-lg bg-[#1a1a2e] border border-[#0f3460] hover:border-[#533483] transition-colors"
-          >
-            <span className="text-2xl">{seed.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <div className="text-white font-medium text-sm">{seed.name}</div>
-              <div className="text-gray-500 text-xs truncate">{seed.description}</div>
-            </div>
-            <Button
-              onClick={() => handleBuy(seed)}
-              disabled={buying === seed.id || (user?.gold ?? 0) < seed.priceGold}
-              variant="secondary"
+        {seeds.map((seed) => {
+          const canBuy = (user?.gold ?? 0) >= seed.priceGold;
+          return (
+            <div
+              key={seed.id}
+              className="card p-3 flex items-center gap-3 animate-fade-in"
             >
-              {buying === seed.id ? '...' : `${seed.priceGold}💰`}
-            </Button>
-          </div>
-        ))}
+              <div className="text-3xl">{seed.emoji}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-medium text-sm">{seed.name}</div>
+                <div className="text-gray-600 text-xs truncate">{seed.description}</div>
+              </div>
+              <Button
+                onClick={() => handleBuy(seed)}
+                disabled={buying === seed.id || !canBuy}
+                variant={canBuy ? 'primary' : 'secondary'}
+                size="sm"
+              >
+                {buying === seed.id ? '...' : `💰 ${seed.priceGold}`}
+              </Button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
