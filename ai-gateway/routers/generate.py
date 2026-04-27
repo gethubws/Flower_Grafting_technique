@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from core.config import settings
 from services.placeholder import generate_placeholder
 from services.minio_uploader import upload_image
-from services.prompt_builder import build_prompt
+from services.prompt_builder import build_prompt, get_negative_prompt
+from services.sd_adapter import generate_sd
 
 router = APIRouter()
 
@@ -43,13 +44,30 @@ async def generate(req: GenerateRequest):
         # Build full prompt from atoms
         full_prompt = req.prompt or build_prompt(req.atoms, req.rarity)
 
-        # Generate placeholder image
-        image_bytes = generate_placeholder(
-            rarity=req.rarity,
-            stage=req.stage,
-            width=req.width,
-            height=req.height,
-        )
+        if settings.use_real_sd:
+            # Real SD mode
+            images = await generate_sd(
+                prompt=full_prompt,
+                negative_prompt=get_negative_prompt(),
+                seed=req.seed,
+                width=req.width,
+                height=req.height,
+            )
+            if not images:
+                raise RuntimeError("SD returned no images")
+            # SD returns base64 PNG, decode to bytes
+            import base64
+            image_bytes = base64.b64decode(images[0])
+            is_placeholder = False
+        else:
+            # Placeholder mode (L3)
+            image_bytes = generate_placeholder(
+                rarity=req.rarity,
+                stage=req.stage,
+                width=req.width,
+                height=req.height,
+            )
+            is_placeholder = True
 
         # Upload to MinIO
         object_name = f"{req.user_id or 'unknown'}/{req.flower_id or hashlib.md5(str(time.time()).encode()).hexdigest()}.png"
@@ -59,7 +77,7 @@ async def generate(req: GenerateRequest):
             success=True,
             flower_id=req.flower_id,
             image_url=image_url,
-            placeholder=True,
+            placeholder=is_placeholder,
         )
 
     except Exception as e:
