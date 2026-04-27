@@ -104,7 +104,7 @@ export class FusionService {
         data: { flowerId: null },
       });
 
-      // 创建 BLOOMING 融合花
+      // 创建 GROWING 融合花（需成长到 BLOOMING 才能收获）
       const flower = await tx.flower.create({
         data: {
           ownerId: userId,
@@ -113,8 +113,8 @@ export class FusionService {
           parentBId: parents.b.id,
           rarity,
           atoms: atoms as any,
-          stage: 'BLOOMING',
-          progress: 100,
+          stage: 'GROWING',
+          progress: 30,
           isShopSeed: false,
         },
       });
@@ -402,14 +402,14 @@ export class FusionService {
     isFirstTime: boolean,
   ) {
     try {
-      // 调用 AI Gateway 生成图片
+      // 调用 AI Gateway 生成图片（GROWING 阶段图）
       const genResult = await this.aiGateway.generateImage({
         flowerId,
         userId,
         prompt: '',
         atoms,
         rarity,
-        stage: 'BLOOMING',
+        stage: 'GROWING',
         seed: Date.now(),
       });
 

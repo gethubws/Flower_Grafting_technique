@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma/prisma.service';
-import { Stage, getStageFromProgress } from '../../common/enums';
+import { Stage, getStageFromProgress, HARVEST_REWARDS, TransactionType } from '../../common/enums';
 
 @Injectable()
 export class GardenService {
@@ -135,6 +135,63 @@ export class GardenService {
     }
 
     return Object.values(grouped);
+  }
+
+  /**
+   * 收获：BLOOMING 阶段花 → 奖励金币/经验 → 消耗花 + 释放槽位
+   */
+  async harvest(userId: string, flowerId: string) {
+    const flower = await this.prisma.flower.findUnique({
+      where: { id: flowerId },
+    });
+    if (!flower || flower.ownerId !== userId) {
+      throw new NotFoundException('Flower not found');
+    }
+    if (flower.stage !== 'BLOOMING') {
+      throw new BadRequestException(
+        `Flower must be in BLOOMING stage to harvest, got ${flower.stage}`,
+      );
+    }
+
+    const reward =
+      HARVEST_REWARDS[flower.rarity as keyof typeof HARVEST_REWARDS];
+
+    // 事务标记 Flower 消耗 + 释放槽位
+    await this.prisma.flower.update({
+      where: { id: flowerId },
+      data: { consumedAt: new Date() },
+    });
+
+    await this.prisma.gardenSlot.updateMany({
+      where: { flowerId },
+      data: { flowerId: null },
+    });
+
+    // 金币 + 经验
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { gold: { increment: reward.gold }, xp: { increment: reward.xp } },
+    });
+
+    // 交易日志
+    await this.prisma.transactionLog.create({
+      data: {
+        userId,
+        type: 'HARVEST',
+        currency: 'GOLD',
+        amount: reward.gold,
+        balance: 0,
+        reason: `Harvest ${flower.rarity} flower: ${flower.name}`,
+        relatedId: flowerId,
+      },
+    });
+
+    return {
+      flowerId,
+      flowerName: flower.name,
+      rarity: flower.rarity,
+      reward,
+    };
   }
 
   /**

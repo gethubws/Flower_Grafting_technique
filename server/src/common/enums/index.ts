@@ -79,6 +79,7 @@ export enum FailType {
 export enum TransactionType {
   BUY = 'BUY',
   FUSION_REWARD = 'FUSION_REWARD',
+  HARVEST = 'HARVEST',
   SYSTEM = 'SYSTEM',
   REFUND = 'REFUND',
 }
@@ -94,6 +95,21 @@ export enum RitualType {
   SING = 'SING',
   PRAY = 'PRAY',
 }
+
+// ========================
+// 收获奖励配置
+// ========================
+
+export const HARVEST_REWARDS: Record<
+  Rarity,
+  { gold: number; xp: number }
+> = {
+  [Rarity.N]: { gold: 80, xp: 15 },
+  [Rarity.R]: { gold: 150, xp: 30 },
+  [Rarity.SR]: { gold: 300, xp: 60 },
+  [Rarity.SSR]: { gold: 600, xp: 150 },
+  [Rarity.UR]: { gold: 1200, xp: 300 },
+};
 
 // ========================
 // Fusion 奖励配置

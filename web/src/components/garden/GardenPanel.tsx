@@ -43,6 +43,16 @@ export const GardenPanel: React.FC = () => {
     await refresh();
   };
 
+  const handleHarvest = async (flowerId: string) => {
+    try {
+      const result = await gardenApi.harvest(flowerId);
+      alert(`🎉 收获！${result.flowerName}\n获得 💰${result.reward.gold}g ⭐${result.reward.xp}xp`);
+      await refresh();
+    } catch (e: any) {
+      alert(e.response?.data?.message || '收获失败');
+    }
+  };
+
   const handleFusionSelect = (flowerId: string) => {
     if (fusionQueue.includes(flowerId)) {
       removeFromQueue(flowerId);
@@ -113,6 +123,11 @@ export const GardenPanel: React.FC = () => {
                 {slot.flower.stage !== 'BLOOMING' && slot.flower.stage !== 'RECOVERING' && (
                   <Button onClick={() => handleGrow(slot.flower!.id)} variant="secondary" className="text-xs px-2 py-0.5">
                     💧
+                  </Button>
+                )}
+                {slot.flower.stage === 'BLOOMING' && (
+                  <Button onClick={() => handleHarvest(slot.flower!.id)} variant="primary" className="text-xs px-2 py-0.5">
+                    🎁
                   </Button>
                 )}
                 {(slot.flower.stage === 'GROWING' || slot.flower.stage === 'MATURE') && (

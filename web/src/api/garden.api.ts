@@ -11,4 +11,10 @@ export const gardenApi = {
 
   grow: (flowerId: string) =>
     client.post<{ flower: Flower }>('/garden/grow', { flowerId }).then((r) => r.data),
+
+  harvest: (flowerId: string) =>
+    client.post<{ flowerId: string; flowerName: string; rarity: string; reward: { gold: number; xp: number } }>(
+      '/garden/harvest',
+      { flowerId },
+    ).then((r) => r.data),
 };

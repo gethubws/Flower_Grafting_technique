@@ -39,4 +39,11 @@ export class GardenController {
       dto.amount ?? 30,
     );
   }
+
+  @Post('harvest')
+  @UseGuards(JwtGuard)
+  async harvest(@Req() req: any, @Body('flowerId') flowerId: string) {
+    const { sub } = req.user as JwtPayload;
+    return this.gardenService.harvest(sub, flowerId);
+  }
 }
