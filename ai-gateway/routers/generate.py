@@ -11,6 +11,7 @@ from services.placeholder import generate_placeholder
 from services.minio_uploader import upload_image
 from services.prompt_builder import build_prompt, get_negative_prompt
 from services.sd_adapter import generate_sd, generate_ui_asset
+from services.image_processor import process_flower_image, optimize_for_web
 
 router = APIRouter()
 
@@ -69,6 +70,11 @@ async def generate(req: GenerateRequest):
             if not images:
                 raise RuntimeError("SD returned no images")
             image_bytes = base64.b64decode(images[0])
+
+            # Post-process: remove dark background → transparent + crop
+            image_bytes = process_flower_image(image_bytes, remove_bg=req.transparent, crop=True)
+            # Resize for web display
+            image_bytes = optimize_for_web(image_bytes, max_width=256, max_height=384)
             is_placeholder = False
         else:
             image_bytes = generate_placeholder(
