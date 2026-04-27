@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma/prisma.service';
 import { UserService } from '../user/user.service';
+import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
+import { FusionGateway } from './fusion.gateway';
 import {
   Stage,
   Rarity,
@@ -23,6 +25,8 @@ export class FusionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
+    private readonly aiGateway: AiGatewayService,
+    private readonly fusionGateway: FusionGateway,
   ) {}
 
   // ========================
@@ -164,7 +168,7 @@ export class FusionService {
       return { flower, gold, xp, isFirstTime };
     });
 
-    return {
+    const fusionResponse: FusionResponseDto = {
       success: true,
       flowerId: result.flower.id,
       rarity,
@@ -172,6 +176,19 @@ export class FusionService {
       reward: { gold: result.gold, xp: result.xp },
       isFirstTime: result.isFirstTime,
     };
+
+    // 8. 异步生成图片 + 更新 Flower + Socket 推送（不阻塞响应）
+    this.generateAndPush(
+      userId,
+      result.flower.id,
+      rarity,
+      atoms,
+      result.gold,
+      result.xp,
+      result.isFirstTime,
+    );
+
+    return fusionResponse;
   }
 
   // ========================
@@ -369,6 +386,62 @@ export class FusionService {
       failType,
       atoms: [],
     };
+  }
+
+  // ========================
+  // 8. AI 图片生成 + Socket 推送
+  // ========================
+
+  private async generateAndPush(
+    userId: string,
+    flowerId: string,
+    rarity: string,
+    atoms: string[],
+    gold: number,
+    xp: number,
+    isFirstTime: boolean,
+  ) {
+    try {
+      // 调用 AI Gateway 生成图片
+      const genResult = await this.aiGateway.generateImage({
+        flowerId,
+        userId,
+        prompt: '',
+        atoms,
+        rarity,
+        stage: 'BLOOMING',
+        seed: Date.now(),
+      });
+
+      // 更新 Flower.imageUrl
+      await this.prisma.flower.update({
+        where: { id: flowerId },
+        data: { imageUrl: genResult.imageUrl },
+      });
+
+      // Socket.io 推送
+      this.fusionGateway.emitFusionComplete(userId, {
+        flowerId,
+        rarity,
+        atoms,
+        imageUrl: genResult.imageUrl,
+        reward: { gold, xp },
+        isFirstTime,
+      });
+    } catch (err: any) {
+      // 图片生成失败不阻塞 fusion 结果，只记录日志
+      console.error(`Image generation failed for flower ${flowerId}:`, err.message);
+
+      // 推送不带图的结果
+      this.fusionGateway.emitFusionComplete(userId, {
+        flowerId,
+        rarity,
+        atoms,
+        imageUrl: null,
+        reward: { gold, xp },
+        isFirstTime,
+      });
+    }
   }
 
   // ========================

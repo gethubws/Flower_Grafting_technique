@@ -11,6 +11,7 @@ import { UserModule } from './modules/user/user.module';
 import { ShopModule } from './modules/shop/shop.module';
 import { GardenModule } from './modules/garden/garden.module';
 import { FusionModule } from './modules/fusion/fusion.module';
+import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { FusionModule } from './modules/fusion/fusion.module';
     ShopModule,
     GardenModule,
     FusionModule,
+    AiGatewayModule,
   ],
   controllers: [AppController],
   providers: [

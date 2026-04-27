@@ -15,8 +15,26 @@
 | 3 | Shop & Garden | 种子商店、花园种植/生长 | ✅ 完成 |
 | 4 | Fusion Core | 嫁接核心算法、事务、奖励、失败处理 | ✅ 完成 |
 | 5 | AI Gateway (Python) | L3 占位图、MinIO 上传、Health check | ✅ 完成 |
-| 6 | WebSocket & Queue | Socket.io 推送、BullMQ 队列、AI 回调 | ⬜ 待开始 |
+| 6 | WebSocket & Queue | Socket.io 推送、HTTP 同步调 AI Gateway | 🔵 进行中 |
 | 7 | Frontend | React+Phaser 全鼠标操作花园 + 嫁接界面 | ⬜ 待开始 |
+
+---
+
+## ⚠️ 架构简化决策 (2026-04-27)
+
+**原 Phase 1 文档设计：**
+- Fusion → BullMQ 入队 → Python 消费 → 生成图 → 回调 NestJS `POST /ai-gateway/callback` → Socket 推送
+
+**简化方案（Phase 1 采用）：**
+- Fusion → HTTP 同步调 AI Gateway `POST /generate` → 拿到 imageUrl → 更新 Flower → Socket 推送
+- **原因**：Phase 1 目标是端到端快速跑通，BullMQ + 异步回调增加两个故障点，且 Python 消费 BullMQ 需要额外协议适配
+- **Phase 3 恢复**：当性能要求提升时，再引入 BullMQ 队列化异步处理
+
+**受影响的文件：**
+- `ai-gateway/processor` → 不需要（Phase 1）
+- `POST /api/ai-gateway/callback` → 不需要（Phase 1）
+- `AiGatewayProcessor` (NestJS) → 不需要（Phase 1）
+- `BullModule` 注册 → 不需要（Phase 1）
 
 ---
 
