@@ -28,13 +28,9 @@ export const GardenPanel: React.FC = () => {
   }, []);
 
   const handlePlant = async (seedItem: GroupedSeedItem) => {
-    // 找第一个空槽位
-    const emptySlot = slots.find((s) => !s.flower);
-    if (!emptySlot) return alert('花园已满，没有空槽位了');
-
     setPlanting(seedItem.name);
     try {
-      await gardenApi.plant(seedItem.sampleId, emptySlot.position);
+      await gardenApi.plant(seedItem.sampleId); // 后端自动分配空槽位
       await refresh();
     } catch (e: any) {
       alert(e.response?.data?.message || '种植失败');

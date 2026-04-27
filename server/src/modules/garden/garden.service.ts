@@ -49,8 +49,9 @@ export class GardenService {
 
   /**
    * 种植：将 SEED 阶段的 Flower 放入指定槽位，stage → SEEDLING
+   * position 可选，不传则自动分配到第一个空槽位
    */
-  async plant(userId: string, flowerId: string, position: number) {
+  async plant(userId: string, flowerId: string, position?: number) {
     // 校验 Flower 存在且属于当前用户
     const flower = await this.prisma.flower.findUnique({
       where: { id: flowerId },
@@ -62,6 +63,17 @@ export class GardenService {
       throw new BadRequestException(
         `Flower must be in SEED stage, got ${flower.stage}`,
       );
+    }
+
+    // 自动分配空槽位
+    if (position === undefined) {
+      const allSlots = await this.prisma.gardenSlot.findMany({
+        where: { userId },
+        orderBy: { position: 'asc' },
+      });
+      const empty = allSlots.find((s) => !s.flowerId);
+      if (!empty) throw new BadRequestException('No empty garden slots available');
+      position = empty.position;
     }
 
     // 校验槽位存在且为空

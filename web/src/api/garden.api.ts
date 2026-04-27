@@ -6,7 +6,7 @@ export const gardenApi = {
 
   getSeedInventory: () => client.get<GroupedSeedItem[]>('/garden/inventory').then((r) => r.data),
 
-  plant: (flowerId: string, position: number) =>
+  plant: (flowerId: string, position?: number) =>
     client.post<{ slot: number; flower: Flower }>('/garden/plant', { flowerId, position }).then((r) => r.data),
 
   grow: (flowerId: string) =>

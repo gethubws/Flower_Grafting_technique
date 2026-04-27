@@ -1,11 +1,12 @@
-import { IsUUID, IsInt, Min, Max } from 'class-validator';
+import { IsUUID, IsInt, Min, Max, IsOptional } from 'class-validator';
 
 export class PlantSeedDto {
   @IsUUID('4')
-  flowerId: string; // 要种植的 Flower（必须处于 SEED 阶段）
+  flowerId: string;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Max(5)
-  position: number; // 槽位 0~5
+  position?: number;
 }
