@@ -16,9 +16,19 @@ export class GardenService {
   async getGarden(userId: string) {
     const slots = await this.prisma.gardenSlot.findMany({
       where: { userId },
-      include: { flower: true },
+      include: {
+        flower: true,
+      },
       orderBy: { position: 'asc' },
     });
+
+    // 过滤掉已消耗的花（consumedAt 非空 = 已用于嫁接）
+    for (const slot of slots) {
+      if (slot.flower?.consumedAt) {
+        slot.flower = null;
+        // 注意：这里不在数据库层面清理 slot，留给 Fusion 事务处理
+      }
+    }
 
     // 确保始终返回 6 个槽位（即使某些槽位无记录）
     const result = Array.from({ length: 6 }, (_, i) => {

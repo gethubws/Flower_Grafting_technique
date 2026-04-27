@@ -59,8 +59,6 @@ model Flower {
   updatedAt  DateTime  @updatedAt
 
   // 关联
-  logsAsParentA FusionLog[] @relation("ParentA")
-  logsAsParentB FusionLog[] @relation("ParentB")
   gardenSlot    GardenSlot?
 
   @@index([ownerId])
@@ -107,9 +105,7 @@ model FusionLog {
   userId       String
   user         User     @relation(fields: [userId], references: [id])
   parentAId    String?
-  parentA      Flower?  @relation("ParentA", fields: [parentAId], references: [id], onDelete: SetNull)
   parentBId    String?
-  parentB      Flower?  @relation("ParentB", fields: [parentBId], references: [id], onDelete: SetNull)
   soil         String?  // HUMUS / SANDY / CLAY / LOAM
   ritual       String?  // NONE / WHISTLE / SING / PRAY（Phase 1 预留）
   success      Boolean

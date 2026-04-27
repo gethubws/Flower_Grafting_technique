@@ -10,6 +10,7 @@ import { MinioModule } from './config/minio/minio.module';
 import { UserModule } from './modules/user/user.module';
 import { ShopModule } from './modules/shop/shop.module';
 import { GardenModule } from './modules/garden/garden.module';
+import { FusionModule } from './modules/fusion/fusion.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { GardenModule } from './modules/garden/garden.module';
     UserModule,
     ShopModule,
     GardenModule,
+    FusionModule,
   ],
   controllers: [AppController],
   providers: [
