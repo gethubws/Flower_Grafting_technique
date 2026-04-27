@@ -66,7 +66,7 @@ export class FusionService {
       );
     }
 
-    // 4. 成功路径 — 抽取珍稀度
+    // 4. 成功路径 — 消耗亲本 A（必死）+ B + 抽取珍稀度
     const rarity = this.rollRarity();
 
     // 5. 合并原子
@@ -362,24 +362,25 @@ export class FusionService {
     roll: number,
     successRate: number,
   ): Promise<FusionResponseDto> {
-    // 大失败判定：roll 小于基础失败范围的 30% 时触发
-    // 即失败范围是 (successRate ~ 100)，其中前 30% 是大失败
     const failRange = 100 - successRate;
     const graveThreshold = successRate + failRange * 0.3;
     const isGrave = roll < graveThreshold;
     const failType = isGrave ? FailType.GRAVE : FailType.NORMAL;
 
-    if (isGrave) {
-      // 大失败：亲本 A → RECOVERING，24h 冷却
-      await this.prisma.flower.update({
-        where: { id: parentA.id },
-        data: {
-          stage: Stage.RECOVERING,
-          consumedAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 冷却到期时间 (Phase 3 实现校验)
-        },
-      });
-    }
-    // 普通失败：亲本保留，不做修改
+    // 亲本 A 永远被消耗（嫁接时第一选择必定死去）
+    await this.prisma.flower.update({
+      where: { id: parentA.id },
+      data: {
+        consumedAt: new Date(),
+        ...(isGrave ? { stage: Stage.RECOVERING } : {}),
+      },
+    });
+
+    // 释放亲本 A 的槽位
+    await this.prisma.gardenSlot.updateMany({
+      where: { flowerId: parentA.id },
+      data: { flowerId: null },
+    });
 
     await this.prisma.fusionLog.create({
       data: {

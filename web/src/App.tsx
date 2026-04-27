@@ -8,35 +8,54 @@ import { useAuth } from './hooks/useAuth';
 import { useSocket } from './hooks/useSocket';
 import { bridge, BridgeEvent } from './game/bridge';
 import { gardenApi } from './api/garden.api';
+import { fusionApi } from './api/fusion.api';
 import type { PotClickedPayload } from './game/bridge';
-import type { GroupedSeedItem } from './types';
+import type { GroupedSeedItem, SoilType } from './types';
 
 import { RegisterPanel } from './components/user/RegisterPanel';
 import { Toolbar } from './components/common/Toolbar';
 import { Button } from './components/common/Button';
-
 import { ShopPanel } from './components/shop/ShopPanel';
 import { GardenPanel } from './components/garden/GardenPanel';
 import { FusionPanel } from './components/fusion/FusionPanel';
 import { FusionResultModal } from './components/fusion/FusionResultModal';
 
+type ToolType = 'seed' | 'glove' | 'knife' | null;
+type FusionStep = 'selectA' | 'selectB' | 'soil' | null;
+
+const soils: { key: SoilType; name: string; desc: string; emoji: string }[] = [
+  { key: 'LOAM', name: '壤土', desc: '基础', emoji: '🟫' },
+  { key: 'HUMUS', name: '腐殖土', desc: '奖励+15%', emoji: '🖤' },
+  { key: 'SANDY', name: '沙土', desc: '成功率+5%', emoji: '🟨' },
+  { key: 'CLAY', name: '粘土', desc: '成功率+10%', emoji: '🟥' },
+];
+
 const App: React.FC = () => {
   const gameInstance = useRef<Phaser.Game | null>(null);
-  const [panelTab, setPanelTab] = useState<'garden' | 'shop'>('garden');
 
   // Toolbar state
-  const [activeTool, setActiveTool] = useState<'seed' | 'glove' | null>(null);
+  const [activeTool, setActiveTool] = useState<ToolType>(null);
   const [pickedSeed, setPickedSeed] = useState<GroupedSeedItem | null>(null);
 
-  // Shop overlay
+  // Fusion workflow state
+  const [fusionStep, setFusionStep] = useState<FusionStep>(null);
+  const [fusionParentA, setFusionParentA] = useState<{ id: string; name: string; stage: string } | null>(null);
+  const [fusionParentB, setFusionParentB] = useState<{ id: string; name: string; stage: string } | null>(null);
+  const [fusionSoil, setFusionSoil] = useState<SoilType>('LOAM');
+  const [fusing, setFusing] = useState(false);
+
+  // Shop / Garden panel toggles
   const [showShop, setShowShop] = useState(false);
   const [showGardenPanel, setShowGardenPanel] = useState(true);
+  const [showFusionPanel, setShowFusionPanel] = useState(false);
 
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const user = useUserStore((s) => s.user);
+  const updateGold = useUserStore((s) => s.updateGold);
   const setSlots = useGardenStore((s) => s.setSlots);
   const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
   const seeds = useGardenStore((s) => s.seedInventory);
+  const slots = useGardenStore((s) => s.slots);
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const resultFlower = useFusionStore((s) => s.resultFlower);
   const setResult = useFusionStore((s) => s.setResult);
@@ -52,31 +71,38 @@ const App: React.FC = () => {
     return { garden, inv };
   }, [setSlots, setSeedInventory]);
 
-  // Init Phaser — full screen
+  // Init Phaser
   useEffect(() => {
     if (!isLoggedIn || loading || gameInstance.current) return;
     const container = document.getElementById('game-container');
     if (!container) return;
-
     const config = createGameConfig('game-container');
     gameInstance.current = new Phaser.Game(config);
-
     setTimeout(async () => { await refreshGarden(); }, 800);
-
-    return () => {
-      gameInstance.current?.destroy(true);
-      gameInstance.current = null;
-    };
+    return () => { gameInstance.current?.destroy(true); gameInstance.current = null; };
   }, [isLoggedIn, loading]);
 
-  // Sync active tool to Phaser
+  // Sync tool to Phaser
   useEffect(() => {
     bridge.emit(BridgeEvent.TOOL_ACTIVATED, { tool: activeTool });
+  }, [activeTool]);
+
+  // Reset fusion state when knife tool changes
+  useEffect(() => {
+    if (activeTool !== 'knife') {
+      setFusionStep(null);
+      setFusionParentA(null);
+      setFusionParentB(null);
+      setShowFusionPanel(false);
+    } else {
+      setFusionStep('selectA');
+    }
   }, [activeTool]);
 
   // Handle pot clicks
   useEffect(() => {
     const handler = async (payload: PotClickedPayload) => {
+      // --- Seed planting ---
       if (activeTool === 'seed') {
         const seedToPlant = pickedSeed || (seeds.length > 0 ? seeds[0] : null);
         if (!seedToPlant) return alert('没有种子可以种植');
@@ -88,7 +114,11 @@ const App: React.FC = () => {
         } catch (e: any) {
           alert(e.response?.data?.message || '种植失败');
         }
-      } else if (activeTool === 'glove') {
+        return;
+      }
+
+      // --- Glove harvest ---
+      if (activeTool === 'glove') {
         if (!payload.flower) return;
         if (payload.flower.stage !== 'BLOOMING') return alert('只有盛放期的花才能收获');
         try {
@@ -98,11 +128,89 @@ const App: React.FC = () => {
         } catch (e: any) {
           alert(e.response?.data?.message || '收获失败');
         }
+        return;
+      }
+
+      // --- Knife fusion ---
+      if (activeTool === 'knife') {
+        if (!payload.flower) return;
+        const stage = payload.flower.stage;
+        if (stage !== 'GROWING' && stage !== 'MATURE') {
+          return alert('只能选择生长期(🌿成长/🌼成熟)的花来嫁接');
+        }
+
+        if (fusionStep === 'selectA') {
+          setFusionParentA({
+            id: payload.flowerId!,
+            name: payload.flower.name || '花',
+            stage,
+          });
+          setFusionStep('selectB');
+        } else if (fusionStep === 'selectB') {
+          if (payload.flowerId === fusionParentA?.id) {
+            return alert('不能选择同一朵花');
+          }
+          setFusionParentB({
+            id: payload.flowerId!,
+            name: payload.flower.name || '花',
+            stage,
+          });
+          setFusionStep('soil');
+          setShowFusionPanel(true);
+        }
+        return;
       }
     };
     bridge.on(BridgeEvent.POT_CLICKED, handler);
     return () => { bridge.off(BridgeEvent.POT_CLICKED, handler); };
-  }, [activeTool, pickedSeed, seeds]);
+  }, [activeTool, fusionStep, fusionParentA, pickedSeed, seeds]);
+
+  // Execute fusion
+  const handleExecuteFusion = async () => {
+    if (!fusionParentA || !fusionParentB) return;
+    setFusing(true);
+    try {
+      const res = await fusionApi.fuse({
+        parentAId: fusionParentA.id,
+        parentBId: fusionParentB.id,
+        soil: fusionSoil,
+      });
+
+      if (res.success && res.reward) {
+        updateGold(res.reward.gold);
+        setResult({
+          flowerId: res.flowerId || '',
+          rarity: res.rarity || 'N',
+          atoms: res.atoms || [],
+          imageUrl: res.imageUrl || null,
+          reward: res.reward,
+          isFirstTime: res.isFirstTime || false,
+        });
+        alert(
+          `⚗️ 嫁接成功！\n` +
+          `${res.rarity} 级新花已种入花园\n` +
+          `💰 +${res.reward.gold}g  ⭐ +${res.reward.xp}xp` +
+          (res.isFirstTime ? '\n🎉 首达奖励！' : '')
+        );
+      } else {
+        alert(
+          `💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n` +
+          `亲本「${fusionParentA.name}」已牺牲`
+        );
+      }
+
+      // Reset
+      setFusionParentA(null);
+      setFusionParentB(null);
+      setFusionStep(null);
+      setShowFusionPanel(false);
+      setActiveTool(null);
+      await refreshGarden();
+    } catch (e: any) {
+      alert(e.response?.data?.message || '融合失败');
+    }
+    setFusing(false);
+  };
 
   // Fusion result auto-dismiss
   useEffect(() => {
@@ -153,7 +261,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* ==================== Top-Right: Shop Toggle + Garden Toggle ==================== */}
+      {/* ==================== Top-Right: Panel Toggles ==================== */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
           onClick={() => { setShowGardenPanel(!showGardenPanel); setShowShop(false); }}
@@ -195,19 +303,48 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== Fusion Panel (floating) ==================== */}
-      {fusionQueue.length > 0 && (
-        <div className="absolute top-16 right-3 z-20 w-72
-                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-purple-500/20 p-3
-                        animate-fade-in animate-pulse-glow shadow-2xl">
-          <FusionPanel />
+      {/* ==================== Fusion Flow Indicator ==================== */}
+      {activeTool === 'knife' && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-25">
+          <div className="bg-[#0a0a1a]/90 backdrop-blur-lg rounded-xl border border-purple-500/20 p-4
+                          text-center animate-fade-in shadow-2xl min-w-[200px]">
+            <div className="text-2xl mb-2">🔪</div>
+            {fusionStep === 'selectA' && (
+              <>
+                <p className="text-white font-bold text-sm mb-1">选择第一朵花</p>
+                <p className="text-red-400 text-xs mb-1">⚠️ 嫁接刀下必有一死</p>
+                <p className="text-gray-500 text-xs">点击花园中生长期的花</p>
+              </>
+            )}
+            {fusionStep === 'selectB' && fusionParentA && (
+              <>
+                <p className="text-white font-bold text-sm mb-1">选择第二朵花</p>
+                <div className="flex items-center justify-center gap-2 mb-1 text-xs">
+                  <span className="text-purple-300">已选：{fusionParentA.name}</span>
+                  <span className="text-red-500">🔪必死</span>
+                </div>
+                <p className="text-gray-500 text-xs">点击花园中另一朵生长期的花</p>
+              </>
+            )}
+            {fusionStep === 'soil' && showFusionPanel && (
+              <FusionSoilPicker
+                fusionParentA={fusionParentA}
+                fusionParentB={fusionParentB}
+                soil={fusionSoil}
+                setSoil={setFusionSoil}
+                fusing={fusing}
+                onFuse={handleExecuteFusion}
+                onCancel={() => { setActiveTool(null); }}
+              />
+            )}
+            {!fusionStep && (
+              <p className="text-gray-500 text-xs">准备嫁接...</p>
+            )}
+          </div>
         </div>
       )}
 
-      {/* ==================== Popup: Fusion Result ==================== */}
-      <FusionResultModal />
-
-      {/* ==================== Toast: Socket Fusion Result ==================== */}
+      {/* ==================== Socket Fusion Result Toast ==================== */}
       {resultFlower && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30
                         bg-gradient-to-r from-green-900/90 to-emerald-900/90 backdrop-blur-md
@@ -218,9 +355,12 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== Bottom: Toolbar ==================== */}
+      {/* ==================== Fusion Result Modal ==================== */}
+      <FusionResultModal />
+
+      {/* ==================== Bottom: Toolbar + Seed/Glove/Knife Hints ==================== */}
       <div className="absolute bottom-0 left-0 right-0 z-20">
-        {/* Seed picker overlay */}
+        {/* Seed picker */}
         {activeTool === 'seed' && (
           <div className="bg-[#0a0a1a]/90 backdrop-blur-md border-t border-amber-800/20 p-2 animate-fade-in">
             <div className="flex items-center gap-2 flex-wrap justify-center">
@@ -247,16 +387,15 @@ const App: React.FC = () => {
             </div>
             {pickedSeed && (
               <p className="text-amber-400 text-xs text-center mt-1.5 animate-fade-in">
-                👆 已选中「{pickedSeed.name}」，点击花园中的花盆即可种植
+                👆 已选中「{pickedSeed.name}」，点击花盆种植
               </p>
             )}
           </div>
         )}
 
-        {/* Glove hint */}
         {activeTool === 'glove' && (
           <div className="bg-[#0a0a1a]/90 backdrop-blur-md border-t border-green-800/20 p-2 animate-fade-in text-center">
-            <p className="text-green-400 text-xs">👆 点击花园中盛放期（🌸）的花朵即可收获</p>
+            <p className="text-green-400 text-xs">👆 点击盛放期（🌸）花朵收获</p>
           </div>
         )}
 
@@ -269,5 +408,57 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+// ========== Inline Fusion Soil Picker (shown in fusion flow popup) ==========
+
+const FusionSoilPicker: React.FC<{
+  fusionParentA: { name: string } | null;
+  fusionParentB: { name: string } | null;
+  soil: SoilType;
+  setSoil: (s: SoilType) => void;
+  fusing: boolean;
+  onFuse: () => void;
+  onCancel: () => void;
+}> = ({ fusionParentA, fusionParentB, soil, setSoil, fusing, onFuse, onCancel }) => (
+  <div className="animate-fade-in">
+    <div className="flex items-center justify-center gap-2 mb-3 text-xs">
+      <span className="text-red-400">{fusionParentA?.name} 🔪</span>
+      <span className="text-purple-400">×</span>
+      <span className="text-white">{fusionParentB?.name}</span>
+    </div>
+
+    <p className="text-gray-400 text-xs mb-2">选择土壤：</p>
+    <div className="grid grid-cols-2 gap-1.5 mb-3">
+      {soils.map((s) => (
+        <button
+          key={s.key}
+          onClick={() => setSoil(s.key)}
+          className={`text-left p-1.5 rounded-lg text-xs transition-all ${
+            soil === s.key
+              ? 'bg-purple-900/50 border border-purple-500 text-white'
+              : 'bg-[#1a1a2e] border border-[#1a1a3e] text-gray-500 hover:border-purple-900/50'
+          }`}
+        >
+          <span className="mr-1">{s.emoji}</span>
+          <span className="font-medium">{s.name}</span>
+          <span className="text-gray-700 ml-1">{s.desc}</span>
+        </button>
+      ))}
+    </div>
+
+    <div className="flex gap-2">
+      <button onClick={onCancel} className="flex-1 py-1.5 rounded-lg bg-[#1a1a2e] text-gray-400 text-xs hover:text-white">
+        取消
+      </button>
+      <button
+        onClick={onFuse}
+        disabled={fusing}
+        className="flex-1 py-1.5 rounded-lg bg-purple-700 text-white text-xs font-bold hover:bg-purple-600 disabled:opacity-50"
+      >
+        {fusing ? '⚗️ 融合中...' : '✨ 开始嫁接'}
+      </button>
+    </div>
+  </div>
+);
 
 export default App;

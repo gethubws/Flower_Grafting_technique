@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { gardenApi } from '../../api/garden.api';
 import { useGardenStore } from '../../stores/garden.store';
-import { useFusionStore } from '../../stores/fusion.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
 import { Button } from '../common/Button';
 
@@ -10,9 +9,6 @@ export const GardenPanel: React.FC = () => {
   const seeds = useGardenStore((s) => s.seedInventory);
   const setSlots = useGardenStore((s) => s.setSlots);
   const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
-  const fusionQueue = useFusionStore((s) => s.fusionQueue);
-  const addToQueue = useFusionStore((s) => s.addToQueue);
-  const removeFromQueue = useFusionStore((s) => s.removeFromQueue);
 
   const refresh = async () => {
     const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
@@ -28,21 +24,6 @@ export const GardenPanel: React.FC = () => {
     await refresh();
   };
 
-  const handleHarvest = async (flowerId: string) => {
-    try {
-      const result = await gardenApi.harvest(flowerId);
-      alert(`🎉 收获成功！\n${result.flowerName}\n💰 +${result.reward.gold}g  ⭐ +${result.reward.xp}xp`);
-      await refresh();
-    } catch (e: any) {
-      alert(e.response?.data?.message || '收获失败');
-    }
-  };
-
-  const handleFusionSelect = (flowerId: string) => {
-    if (fusionQueue.includes(flowerId)) removeFromQueue(flowerId);
-    else addToQueue(flowerId);
-  };
-
   const getStageEmoji = (stage: string) => {
     const m: Record<string, string> = { SEED: '🌰', SEEDLING: '🌱', GROWING: '🌿', MATURE: '🌼', BLOOMING: '🌸', RECOVERING: '💤' };
     return m[stage] || '❓';
@@ -55,10 +36,10 @@ export const GardenPanel: React.FC = () => {
 
   return (
     <div className="animate-fade-in">
-      {/* Seed Inventory — display only, planting done via toolbar */}
+      {/* Seed count */}
       {seeds.length > 0 && (
         <div className="mb-3 animate-fade-in">
-          <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex items-center gap-1.5 mb-1.5">
             <span className="text-amber-400 text-sm">🌰</span>
             <span className="text-sm font-semibold text-amber-400">种子库存</span>
             <span className="text-amber-600 text-xs">({seeds.reduce((s, i) => s + i.count, 0)}颗)</span>
@@ -70,13 +51,11 @@ export const GardenPanel: React.FC = () => {
               <span className="text-amber-400 text-xs font-bold bg-amber-900/40 px-1.5 py-0.5 rounded-full">
                 ×{seed.count}
               </span>
-              <span className="text-gray-700 text-xxs bg-[#0d1117] px-1.5 py-0.5 rounded">工具栏播种</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Garden Slots */}
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">🌻</span>
@@ -117,24 +96,14 @@ export const GardenPanel: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <span className="flex-1 text-gray-700 text-xs">空槽位</span>
+              <span className="flex-1 text-gray-700 text-xs">空槽位 — 工具栏播种</span>
             )}
 
             {slot.flower && slot.flower.stage !== 'BLOOMING' && slot.flower.stage !== 'RECOVERING' && (
               <Button onClick={() => handleGrow(slot.flower!.id)} variant="secondary" size="xs">💧</Button>
             )}
             {slot.flower && slot.flower.stage === 'BLOOMING' && (
-              <Button onClick={() => handleHarvest(slot.flower!.id)} variant="success" size="xs">🎁</Button>
-            )}
-            {slot.flower && (slot.flower.stage === 'GROWING' || slot.flower.stage === 'MATURE') && (
-              <Button
-                onClick={() => handleFusionSelect(slot.flower!.id)}
-                variant={fusionQueue.includes(slot.flower!.id) ? 'primary' : 'secondary'}
-                size="xs"
-                className={fusionQueue.includes(slot.flower!.id) ? 'animate-pulse-glow !bg-purple-700' : ''}
-              >
-                {fusionQueue.includes(slot.flower!.id) ? '✓' : '⚗️'}
-              </Button>
+              <span className="text-pink-400 text-xs">🧤可收获</span>
             )}
           </div>
         ))}

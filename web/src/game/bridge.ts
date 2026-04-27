@@ -44,5 +44,5 @@ export interface PotClickedPayload {
 }
 
 export interface ToolActivatedPayload {
-  tool: 'seed' | 'glove' | null;
+  tool: 'seed' | 'glove' | 'knife' | null;
 }

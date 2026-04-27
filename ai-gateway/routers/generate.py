@@ -1,6 +1,7 @@
 """Image generation router"""
 import hashlib
 import time
+import base64
 from io import BytesIO
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -9,7 +10,7 @@ from core.config import settings
 from services.placeholder import generate_placeholder
 from services.minio_uploader import upload_image
 from services.prompt_builder import build_prompt, get_negative_prompt
-from services.sd_adapter import generate_sd
+from services.sd_adapter import generate_sd, generate_ui_asset
 
 router = APIRouter()
 
@@ -24,13 +25,14 @@ class GenerateRequest(BaseModel):
     user_id: str = ""
     width: int = 512
     height: int = 768
+    transparent: bool = True  # Use LayerDiffuse for transparent BG
 
 
 class GenerateResponse(BaseModel):
     success: bool
     flower_id: str
     image_url: str
-    placeholder: bool = True  # Phase 1: always placeholder
+    placeholder: bool = True
 
 
 class BackgroundRequest(BaseModel):
@@ -39,34 +41,36 @@ class BackgroundRequest(BaseModel):
     seed: int = 42
 
 
+class UIAssetRequest(BaseModel):
+    asset_type: str = "panel"  # panel, button, card, toolbar
+    width: int = 512
+    height: int = 512
+    seed: int = 42
+
+
 @router.post("/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest):
     """
     Generate flower image.
-    Phase 1: Always returns L3 placeholder.
-    Phase 3+: Switches to real SD when USE_REAL_SD=true.
+    Uses LayerDiffuse for transparent background when USE_REAL_SD=true.
     """
     try:
-        # Build full prompt from atoms
         full_prompt = req.prompt or build_prompt(req.atoms, req.rarity)
 
         if settings.use_real_sd:
-            # Real SD mode
             images = await generate_sd(
                 prompt=full_prompt,
                 negative_prompt=get_negative_prompt(),
                 seed=req.seed,
                 width=req.width,
                 height=req.height,
+                transparent=req.transparent,
             )
             if not images:
                 raise RuntimeError("SD returned no images")
-            # SD returns base64 PNG, decode to bytes
-            import base64
             image_bytes = base64.b64decode(images[0])
             is_placeholder = False
         else:
-            # Placeholder mode (L3)
             image_bytes = generate_placeholder(
                 rarity=req.rarity,
                 stage=req.stage,
@@ -75,7 +79,6 @@ async def generate(req: GenerateRequest):
             )
             is_placeholder = True
 
-        # Upload to MinIO
         object_name = f"{req.user_id or 'unknown'}/{req.flower_id or hashlib.md5(str(time.time()).encode()).hexdigest()}.png"
         image_url = upload_image(object_name, image_bytes)
 
@@ -93,18 +96,15 @@ async def generate(req: GenerateRequest):
 @router.post("/generate-background")
 async def generate_background(req: BackgroundRequest):
     """Generate garden background image for Phaser canvas."""
-    import base64
-    from io import BytesIO
-
     try:
         prompt = (
-            "masterpiece, best quality, beautiful garden background, "
+            "masterpiece, best quality, beautiful fantasy garden background, "
             "peaceful nature scene, green grass field, blue sky with soft clouds, "
-            "wooden fence in background, flowers blooming, warm sunlight, "
-            "game background art, painterly style, vibrant colors, "
-            "no text, no UI elements, seamless"
+            "wooden fence in background, colorful flowers blooming, warm sunlight rays, "
+            "game background art, painterly anime style, vibrant colors, peaceful atmosphere, "
+            "no text, no UI elements, no characters"
         )
-        negative = "blurry, low quality, worst quality, nsfw, text, watermark, signature"
+        negative = "blurry, low quality, worst quality, nsfw, text, watermark, signature, dark, gloomy"
 
         if settings.use_real_sd:
             images = await generate_sd(
@@ -113,28 +113,69 @@ async def generate_background(req: BackgroundRequest):
                 seed=req.seed,
                 width=req.width,
                 height=req.height,
+                transparent=False,
             )
             if not images:
                 raise RuntimeError("SD returned no images")
             image_bytes = base64.b64decode(images[0])
-            is_placeholder = False
         else:
-            image_bytes = generate_placeholder(
-                rarity="N",
-                stage="BLOOMING",
-                width=req.width,
-                height=req.height,
-            )
-            is_placeholder = True
+            image_bytes = generate_placeholder("N", "BLOOMING", req.width, req.height)
 
         object_name = f"assets/bg-garden-{int(time.time())}.png"
         image_url = upload_image(object_name, image_bytes)
-
-        return {
-            "success": True,
-            "image_url": image_url,
-            "placeholder": is_placeholder,
-        }
+        return {"success": True, "image_url": image_url, "placeholder": not settings.use_real_sd}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Background generation failed: {str(e)}")
+
+
+@router.post("/generate-ui-asset")
+async def generate_ui_asset_endpoint(req: UIAssetRequest):
+    """Generate UI asset (panel bg, button, card, toolbar) with SD."""
+    try:
+        prompts = {
+            "panel": (
+                "ornate fantasy UI panel background, dark mystical theme with subtle gold trim, "
+                "elegant border decorations, stained glass fragments, floral vine ornaments at corners, "
+                "semi-transparent dark background, game UI element, RPG inventory panel style, "
+                "parchment texture with magical glow edges, no text"
+            ),
+            "card": (
+                "fantasy card frame, elegant dark theme with golden border, "
+                "floral vine decorations at corners, subtle glow effect, "
+                "RPG item card background, mystical atmosphere, no text"
+            ),
+            "button": (
+                "fantasy UI button, ornate golden border, polished gem-like surface, "
+                "dark purple gradient, glowing edges, game button asset, "
+                "circular or rounded rectangular, no text"
+            ),
+            "toolbar": (
+                "fantasy UI toolbar background, horizontal bar, dark wood and gold trim, "
+                "RPG game bottom bar, elegant simple design, subtle magical glow, "
+                "ornate ends with vine motifs, no text, no buttons"
+            ),
+        }
+
+        prompt = prompts.get(req.asset_type, prompts["panel"])
+        negative = "blurry, low quality, worst quality, nsfw, text, watermark, signature, realistic photo, 3D render"
+
+        if settings.use_real_sd:
+            image_b64 = await generate_ui_asset(
+                prompt=prompt,
+                width=req.width,
+                height=req.height,
+                seed=req.seed,
+            )
+            if not image_b64:
+                raise RuntimeError("SD returned no image")
+            image_bytes = base64.b64decode(image_b64)
+        else:
+            image_bytes = generate_placeholder("N", "BLOOMING", req.width, req.height)
+
+        object_name = f"assets/ui-{req.asset_type}-{int(time.time())}.png"
+        image_url = upload_image(object_name, image_bytes)
+        return {"success": True, "image_url": image_url, "asset_type": req.asset_type}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"UI asset generation failed: {str(e)}")

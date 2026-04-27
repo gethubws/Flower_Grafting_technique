@@ -87,8 +87,9 @@ def build_prompt(atoms: list[str], rarity: str = "N") -> str:
     return (
         f"anime style, botanical illustration, {qualifier} flower, "
         f"{desc_str}, "
-        f"clean composition, centered, white background, "
-        f"masterpiece, high quality, detailed petals"
+        f"clean composition, centered, solo, "
+        f"masterpiece, high quality, detailed petals, "
+        f"simple background"
     )
 
 
