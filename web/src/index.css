@@ -14,29 +14,13 @@
 
 body { min-height: 100vh; overflow: hidden; }
 
-#root { width: 100%; height: 100vh; display: flex; }
+#root { width: 100%; height: 100vh; }
 
-/* Phaser canvas container */
+/* Phaser canvas — full screen */
 #game-container {
-  flex: 1;
-  min-width: 600px;
-  min-height: 600px;
-  background: #2d5a27;
+  width: 100%;
+  height: 100%;
 }
-
-/* React panel container */
-#ui-panel {
-  width: 380px;
-  min-width: 380px;
-  background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
-  border-left: 1px solid #21262d;
-  overflow-y: auto;
-  padding: 16px;
-}
-
-/* Scrollbar */
-#ui-panel::-webkit-scrollbar { width: 4px; }
-#ui-panel::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
 
 /* Animations */
 @keyframes fadeIn {

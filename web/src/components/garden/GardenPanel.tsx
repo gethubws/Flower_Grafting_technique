@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { gardenApi } from '../../api/garden.api';
 import { useGardenStore } from '../../stores/garden.store';
 import { useFusionStore } from '../../stores/fusion.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
 import { Button } from '../common/Button';
-import type { GroupedSeedItem } from '../../types';
 
 export const GardenPanel: React.FC = () => {
   const slots = useGardenStore((s) => s.slots);
@@ -14,7 +13,6 @@ export const GardenPanel: React.FC = () => {
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const addToQueue = useFusionStore((s) => s.addToQueue);
   const removeFromQueue = useFusionStore((s) => s.removeFromQueue);
-  const [planting, setPlanting] = useState<string | null>(null);
 
   const refresh = async () => {
     const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
@@ -24,17 +22,6 @@ export const GardenPanel: React.FC = () => {
   };
 
   useEffect(() => { refresh(); }, []);
-
-  const handlePlant = async (seedItem: GroupedSeedItem) => {
-    setPlanting(seedItem.name);
-    try {
-      await gardenApi.plant(seedItem.sampleId);
-      await refresh();
-    } catch (e: any) {
-      alert(e.response?.data?.message || '种植失败');
-    }
-    setPlanting(null);
-  };
 
   const handleGrow = async (flowerId: string) => {
     await gardenApi.grow(flowerId);
@@ -68,7 +55,7 @@ export const GardenPanel: React.FC = () => {
 
   return (
     <div className="animate-fade-in">
-      {/* Seed Inventory */}
+      {/* Seed Inventory — display only, planting done via toolbar */}
       {seeds.length > 0 && (
         <div className="mb-3 animate-fade-in">
           <div className="flex items-center gap-1.5 mb-2">
@@ -83,9 +70,7 @@ export const GardenPanel: React.FC = () => {
               <span className="text-amber-400 text-xs font-bold bg-amber-900/40 px-1.5 py-0.5 rounded-full">
                 ×{seed.count}
               </span>
-              <Button onClick={() => handlePlant(seed)} disabled={planting === seed.name} size="xs" variant="success">
-                {planting === seed.name ? '...' : '🌱 种植'}
-              </Button>
+              <span className="text-gray-700 text-xxs bg-[#0d1117] px-1.5 py-0.5 rounded">工具栏播种</span>
             </div>
           ))}
         </div>
@@ -124,7 +109,6 @@ export const GardenPanel: React.FC = () => {
                     {getStageLabel(slot.flower.stage)}
                   </span>
                 </div>
-                {/* Progress bar */}
                 <div className="progress-bar">
                   <div
                     className="progress-bar-fill bg-gradient-to-r from-green-500 to-emerald-400"

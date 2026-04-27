@@ -4,16 +4,15 @@ import { GardenScene } from './scenes/GardenScene';
 
 export const createGameConfig = (parentId: string): Phaser.Types.Core.GameConfig => ({
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1024,
+  height: 768,
   parent: parentId,
-  backgroundColor: '#2d5a27',
+  backgroundColor: '#1a2f1a',
   scene: [BootScene, GardenScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  // 确保canvas可见
   callbacks: {
     postBoot: (game) => {
       const canvas = game.canvas;

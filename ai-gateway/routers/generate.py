@@ -33,6 +33,12 @@ class GenerateResponse(BaseModel):
     placeholder: bool = True  # Phase 1: always placeholder
 
 
+class BackgroundRequest(BaseModel):
+    width: int = 1024
+    height: int = 768
+    seed: int = 42
+
+
 @router.post("/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest):
     """
@@ -82,3 +88,53 @@ async def generate(req: GenerateRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+
+
+@router.post("/generate-background")
+async def generate_background(req: BackgroundRequest):
+    """Generate garden background image for Phaser canvas."""
+    import base64
+    from io import BytesIO
+
+    try:
+        prompt = (
+            "masterpiece, best quality, beautiful garden background, "
+            "peaceful nature scene, green grass field, blue sky with soft clouds, "
+            "wooden fence in background, flowers blooming, warm sunlight, "
+            "game background art, painterly style, vibrant colors, "
+            "no text, no UI elements, seamless"
+        )
+        negative = "blurry, low quality, worst quality, nsfw, text, watermark, signature"
+
+        if settings.use_real_sd:
+            images = await generate_sd(
+                prompt=prompt,
+                negative_prompt=negative,
+                seed=req.seed,
+                width=req.width,
+                height=req.height,
+            )
+            if not images:
+                raise RuntimeError("SD returned no images")
+            image_bytes = base64.b64decode(images[0])
+            is_placeholder = False
+        else:
+            image_bytes = generate_placeholder(
+                rarity="N",
+                stage="BLOOMING",
+                width=req.width,
+                height=req.height,
+            )
+            is_placeholder = True
+
+        object_name = f"assets/bg-garden-{int(time.time())}.png"
+        image_url = upload_image(object_name, image_bytes)
+
+        return {
+            "success": True,
+            "image_url": image_url,
+            "placeholder": is_placeholder,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Background generation failed: {str(e)}")

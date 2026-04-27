@@ -48,11 +48,11 @@ export class GardenService {
   }
 
   /**
-   * 种植：将 SEED 阶段的 Flower 放入指定槽位，stage → SEEDLING
-   * position 可选，不传则自动分配到第一个空槽位
+   * 手动种植：将 SEED 阶段的 Flower 放入指定槽位，stage → SEEDLING
+   * position 必填 — 用户通过工具栏选择种子后点击花盆来种植
    */
-  async plant(userId: string, flowerId: string, position?: number) {
-    // 校验 Flower 存在且属于当前用户
+  async plant(userId: string, flowerId: string, position: number) {
+    // 校验槽位范围
     const flower = await this.prisma.flower.findUnique({
       where: { id: flowerId },
     });
@@ -65,18 +65,8 @@ export class GardenService {
       );
     }
 
-    // 自动分配空槽位（遍历 0-5 确保不漏）
-    if (position === undefined) {
-      const allSlots = await this.prisma.gardenSlot.findMany({
-        where: { userId },
-        select: { position: true, flowerId: true },
-      });
-      const occupied = new Set(allSlots.filter((s) => s.flowerId).map((s) => s.position));
-      const emptyPos = [0, 1, 2, 3, 4, 5].find((p) => !occupied.has(p));
-      if (emptyPos === undefined) {
-        throw new BadRequestException('No empty garden slots available');
-      }
-      position = emptyPos;
+    if (position < 0 || position > 5) {
+      throw new BadRequestException('Invalid slot position');
     }
 
     // 校验槽位存在且为空
