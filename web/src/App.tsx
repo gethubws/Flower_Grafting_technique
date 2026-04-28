@@ -349,28 +349,37 @@ const App: React.FC = () => {
       <div className="absolute left-0 right-0 z-[110]" style={{ bottom: 88 }}>
         {activeTool === 'seed' && (
           <div className="text-center pb-3 animate-fade-in">
-            <div className="inline-flex items-center gap-2 flex-wrap justify-center p-2 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
-              <span className="text-[#6D4C41] text-xs font-bold">选择种子：</span>
-              {seeds.length === 0 ? (
-                <span className="text-[#8D6E63] text-xs">去 🛒 商店购买</span>
-              ) : (
-                seeds.map((seed) => (
-                  <button
-                    key={seed.name}
-                    onClick={() => setPickedSeed(pickedSeed?.name === seed.name ? null : seed)}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold transition-all border ${
-                      pickedSeed?.name === seed.name
-                        ? 'bg-white border-amber-300 text-amber-700 shadow-sm'
-                        : 'bg-white/60 border-transparent text-[#6D4C41] hover:border-amber-200'
-                    }`}
-                  >
-                    <span>🌰</span><span>{seed.name}</span><span className="text-amber-600">×{seed.count}</span>
-                  </button>
-                ))
-              )}
-            </div>
+            {seeds.length === 0 ? (
+              <div className="inline-flex items-center gap-2 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
+                <span className="text-[#8D6E63] text-sm">暂无种子，去 🛒 商店购买</span>
+              </div>
+            ) : (
+              <div className="px-4">
+                <p className="text-[#6D4C41] text-sm font-bold mb-2">🌱 选择种子</p>
+                <div className="flex items-center gap-3 justify-center flex-wrap">
+                  {seeds.map((seed) => (
+                    <button
+                      key={seed.name}
+                      onClick={() => setPickedSeed(pickedSeed?.name === seed.name ? null : seed)}
+                      className={`flex items-center gap-2 px-4 py-3 rounded-2xl font-bold transition-all border-2 min-w-[120px] ${
+                        pickedSeed?.name === seed.name
+                          ? 'bg-white border-amber-400 text-amber-700 shadow-lg scale-105'
+                          : 'bg-white/75 border-white/60 text-[#6D4C41] hover:border-amber-200 hover:shadow-md hover:scale-105'
+                      }`}
+                      style={{ backdropFilter: 'blur(8px)' }}
+                    >
+                      <span className="text-2xl">🌰</span>
+                      <div className="text-left">
+                        <div className="text-sm leading-tight">{seed.name}</div>
+                        <div className="text-amber-500 text-xs">×{seed.count} 颗</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {pickedSeed && (
-              <p className="text-amber-700 text-xs text-center mt-2 animate-fade-in font-medium">
+              <p className="text-amber-700 text-sm text-center mt-2 animate-fade-in font-medium">
                 👆 已选中「{pickedSeed.name}」，点击花盆种植
               </p>
             )}
