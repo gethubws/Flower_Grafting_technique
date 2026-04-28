@@ -20,8 +20,20 @@ export const GardenPanel: React.FC = () => {
   useEffect(() => { refresh(); }, []);
 
   const handleGrow = async (flowerId: string) => {
-    await gardenApi.grow(flowerId);
+    const result = await gardenApi.grow(flowerId);
     await refresh();
+    // MATURE→BLOOMING：盛放提醒
+    if (result.stageChanged && result.flower.stage === 'BLOOMING') {
+      alert(
+        `🌸 花开了！
+` +
+        `「${result.flower.name || '花'}」进入盛放期
+` +
+        (result.bloomingImageApplied ? '🖼️ 盛放形态已就绪
+' : '') +
+        `🧤 可用园艺手套收获 → 存入仓库`
+      );
+    }
   };
 
   const getStageEmoji = (stage: string) => {

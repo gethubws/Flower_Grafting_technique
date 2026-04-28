@@ -198,17 +198,7 @@ const App: React.FC = () => {
           reward: res.reward,
           isFirstTime: res.isFirstTime || false,
         });
-        let msg = `⚗️ 嫁接成功！\n` +
-          `${res.rarity} 级新花已种入花园\n` +
-          `🧬 继承 ${res.inheritedCount || '?'}/${(res.inheritedCount || 0) + (res.droppedCount || 0)} 因子`;
-        if (res.appliedRules?.length) msg += `\n✨ ${res.appliedRules.join('、')}`;
-        msg += `\n💰 +${res.reward.gold}g  ⭐ +${res.reward.xp}xp`;
-        if (res.isFirstTime) msg += '\n🎉 首达奖励！';
-        if (res.stabilityResult?.similar) {
-          msg += `\n🧬 性状稳定 ${res.stabilityResult.progress}/10`;
-          if (res.stabilityResult.becameFoundation) msg += ' 🏆 奠基种认证！';
-        }
-        alert(msg);
+
       } else {
         alert(
           `💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n` +
@@ -229,10 +219,10 @@ const App: React.FC = () => {
     setFusing(false);
   };
 
-  // Fusion result auto-dismiss
+  // Fusion result modal auto-dismiss (kept, modal needs it)
   useEffect(() => {
     if (!resultFlower) return;
-    const timer = setTimeout(() => setResult(null), 6000);
+    const timer = setTimeout(() => { setResult(null); setFusionResponse(null); }, 10000);
     return () => clearTimeout(timer);
   }, [resultFlower]);
 
@@ -398,16 +388,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== Socket Fusion Result Toast ==================== */}
-      {resultFlower && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30
-                        bg-gradient-to-r from-green-900/90 to-emerald-900/90 backdrop-blur-md
-                        border border-green-500/30 rounded-xl p-4 text-center animate-fade-in shadow-2xl">
-          <p className="text-green-300 font-bold text-sm">🌺 嫁接完成！</p>
-          <p className="text-white text-xs mt-1">{resultFlower.rarity} 级新花已种入花园</p>
-          {resultFlower.isFirstTime && <p className="text-amber-400 text-xs mt-1">🎉 首达奖励！</p>}
-        </div>
-      )}
+      {/* Socket toast removed — bloom notification moved to GardenPanel.grow() */}
 
       {/* ==================== Fusion Result Modal ==================== */}
       <FusionResultModal />

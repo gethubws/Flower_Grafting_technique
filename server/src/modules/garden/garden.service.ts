@@ -234,15 +234,24 @@ export class GardenService {
     const newProgress = Math.min(flower.progress + amount, 100);
     const newStage = getStageFromProgress(newProgress);
 
+    // MATURE→BLOOMING：应用 SD 生成的盛放图
+    let bloomingImageApplied = false;
+    const updateData: any = { progress: newProgress, stage: newStage };
+    if (newStage === 'BLOOMING' && flower.growthImageUrl && !flower.imageUrl) {
+      updateData.imageUrl = flower.growthImageUrl;
+      bloomingImageApplied = true;
+    }
+
     const updated = await this.prisma.flower.update({
       where: { id: flowerId },
-      data: { progress: newProgress, stage: newStage },
+      data: updateData,
     });
 
     return {
       flower: updated,
       progressDelta: amount,
       stageChanged: flower.stage !== newStage,
+      bloomingImageApplied,
     };
   }
 }

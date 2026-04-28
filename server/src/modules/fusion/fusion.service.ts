@@ -433,7 +433,9 @@ export class FusionService {
   }
 
   // ========================
-  // AI 图片生成 + Socket 推送（不变，但 atoms 格式变了）
+  // AI 图片生成（异步静默）
+  // SD 图存入 growthImageUrl，仅在 MATURE→BLOOMING 时应用到 imageUrl
+  // 不再推送 WebSocket —— 消除双重提醒
   // ========================
 
   private async generateAndPush(
@@ -441,9 +443,9 @@ export class FusionService {
     flowerId: string,
     rarity: string,
     atoms: AtomDefinition[],
-    gold: number,
-    xp: number,
-    isFirstTime: boolean,
+    _gold: number,
+    _xp: number,
+    _isFirstTime: boolean,
   ) {
     try {
       const atomIds = atoms.map((a) => a.id);
@@ -453,37 +455,19 @@ export class FusionService {
         prompt: '',
         atoms: atomIds,
         rarity,
-        stage: 'GROWING',
+        stage: 'BLOOMING',
         seed: Date.now(),
       });
 
+      // 仅存 growthImageUrl，不立即写入 imageUrl
       await this.prisma.flower.update({
         where: { id: flowerId },
-        data: { imageUrl: genResult.imageUrl, growthImageUrl: genResult.imageUrl },
-      });
-
-      this.fusionGateway.emitFusionComplete(userId, {
-        flowerId,
-        rarity,
-        atoms: atomIds,
-        imageUrl: genResult.imageUrl,
-        reward: { gold, xp },
-        isFirstTime,
+        data: { growthImageUrl: genResult.imageUrl },
       });
     } catch (err: any) {
       console.error(`Image generation failed for flower ${flowerId}:`, err.message);
-      this.fusionGateway.emitFusionComplete(userId, {
-        flowerId,
-        rarity,
-        atoms: atoms.map((a) => a.id),
-        imageUrl: null,
-        reward: { gold, xp },
-        isFirstTime,
-      });
     }
   }
-
-  // ========================
   // 花名生成（不变）
   // ========================
 
