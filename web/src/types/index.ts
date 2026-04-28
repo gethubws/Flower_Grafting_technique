@@ -149,9 +149,18 @@ export interface PlayerSeedItem {
   totalSold: number;
   revenueShare: number;
   atomCount: number;
+  atoms?: AtomBrief[];
   imageUrl: string | null;
   foundationFlowerId?: string;
   createdAt: string;
+}
+
+export interface AtomBrief {
+  id: string;
+  level: string;
+  prompt_chinese: string;
+  category?: string;
+  score?: number;
 }
 
 // Phase 1.5: Foundation

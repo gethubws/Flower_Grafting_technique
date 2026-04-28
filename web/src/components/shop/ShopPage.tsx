@@ -4,7 +4,8 @@ import { gardenApi } from '../../api/garden.api';
 import { useUserStore } from '../../stores/user.store';
 import { useGardenStore } from '../../stores/garden.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
-import type { Seed, PlayerSeedItem, ShopSort } from '../../types';
+import { FlowerDetailModal } from '../common/FlowerDetailModal';
+import type { Seed, PlayerSeedItem, ShopSort, AtomBrief } from '../../types';
 
 const RARITY_ORDER: Record<string, number> = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
 const RARITY_COLORS: Record<string, string> = {
@@ -32,6 +33,7 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
   const [systemSeeds, setSystemSeeds] = useState<Seed[]>([]);
   const [playerSeeds, setPlayerSeeds] = useState<PlayerSeedItem[]>([]);
   const [buying, setBuying] = useState<string | null>(null);
+  const [detailSeed, setDetailSeed] = useState<PlayerSeedItem | null>(null);
   const user = useUserStore((s) => s.user);
   const updateGold = useUserStore((s) => s.updateGold);
   const setSlots = useGardenStore((s) => s.setSlots);
@@ -176,7 +178,7 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
               sortedPlayer.map((seed) => {
                 const canBuy = (user?.gold ?? 0) >= seed.priceGold;
                 return (
-                  <div key={seed.id} className="bg-gradient-to-b from-purple-900/20 to-gray-900/30 border border-purple-500/30 rounded-xl overflow-hidden animate-fade-in hover:shadow-lg hover:scale-[1.02] transition-all">
+                  <div key={seed.id} onClick={() => setDetailSeed(seed)} className="bg-gradient-to-b from-purple-900/20 to-gray-900/30 border border-purple-500/30 rounded-xl overflow-hidden animate-fade-in hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
                     {/* Image */}
                     <div className="h-36 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
                       {seed.imageUrl ? (
@@ -211,6 +213,33 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
           </div>
         )}
       </div>
+
+      {/* Detail Modal */}
+      {detailSeed && (
+        <FlowerDetailModal
+          title="奠基种详情"
+          name={detailSeed.name}
+          rarity="N"
+          imageUrl={detailSeed.imageUrl}
+          emoji={detailSeed.emoji}
+          atoms={(detailSeed.atoms || []) as AtomBrief[]}
+          onClose={() => setDetailSeed(null)}
+        >
+          <button
+            onClick={() => { handleBuy(detailSeed.id, detailSeed.priceGold); setDetailSeed(null); }}
+            disabled={buying === detailSeed.id || !user || user.gold < detailSeed.priceGold}
+            className="flex-1 py-2 rounded-lg bg-gradient-to-r from-purple-700 to-purple-600 text-white text-sm font-bold hover:from-purple-600 hover:to-purple-500 transition-all disabled:opacity-40"
+          >
+            {buying === detailSeed.id ? '购买中...' : `🛒 购买 ${detailSeed.priceGold}g`}
+          </button>
+          <button
+            onClick={() => setDetailSeed(null)}
+            className="px-4 py-2 rounded-lg bg-[#1a1a2e] text-gray-400 text-sm hover:text-white transition-colors"
+          >
+            关闭
+          </button>
+        </FlowerDetailModal>
+      )}
     </div>
   );
 };

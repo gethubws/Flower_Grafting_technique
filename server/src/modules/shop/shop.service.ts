@@ -89,6 +89,7 @@ export class ShopService {
       totalSold: s.totalSold,
       revenueShare: s.revenueShare,
       atomCount: Array.isArray(s.atomLibrary) ? s.atomLibrary.length : 0,
+      atoms: this.normalizeAtomList(s.atomLibrary),
       imageUrl: s.foundationFlowerId ? flowerImageMap.get(s.foundationFlowerId) || null : null,
       foundationFlowerId: s.foundationFlowerId,
       createdAt: s.createdAt,
@@ -164,5 +165,22 @@ export class ShopService {
       cost: price,
       remainingGold: user.gold - price,
     };
+  }
+
+  /**
+   * 规范化因子列表为前端可用格式
+   */
+  private normalizeAtomList(raw: any): any[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((a: any) => {
+      if (typeof a === 'string') return { id: a, level: 'N', prompt_chinese: a };
+      return {
+        id: a.atomId || a.id || '?',
+        level: a.level || 'N',
+        prompt_chinese: a.prompt_chinese || a.id || '?',
+        category: a.category || '',
+        score: a.score || 0,
+      };
+    });
   }
 }

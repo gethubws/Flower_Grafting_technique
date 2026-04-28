@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { warehouseApi } from '../../api/warehouse.api';
 import { useUserStore } from '../../stores/user.store';
-import type { WarehouseFlower } from '../../types';
+import { FlowerDetailModal } from '../common/FlowerDetailModal';
+import type { WarehouseFlower, AtomBrief } from '../../types';
 
 const RARITY_LABEL: Record<string, string> = { N: '普通', R: '稀有', SR: '精良', SSR: '极品', UR: '传说' };
 const RARITY_COLORS: Record<string, string> = {
@@ -27,6 +28,7 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
   const [flowers, setFlowers] = useState<WarehouseFlower[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [selling, setSelling] = useState<string | null>(null);
+  const [detailFlower, setDetailFlower] = useState<WarehouseFlower | null>(null);
   const updateGold = useUserStore((s) => s.updateGold);
 
   useEffect(() => { warehouseApi.list().then(setFlowers); }, []);
@@ -100,7 +102,8 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
           {sorted.map((f) => (
             <div
               key={f.id}
-              className={`bg-gradient-to-b ${RARITY_BG[f.rarity] || RARITY_BG.N} border ${RARITY_COLORS[f.rarity] || RARITY_COLORS.N} rounded-xl overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] animate-fade-in`}
+              onClick={() => setDetailFlower(f)}
+              className={`bg-gradient-to-b ${RARITY_BG[f.rarity] || RARITY_BG.N} border ${RARITY_COLORS[f.rarity] || RARITY_COLORS.N} rounded-xl overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] animate-fade-in cursor-pointer`}
             >
               {/* Image area */}
               <div className="h-48 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
@@ -159,6 +162,34 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
           ))}
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {detailFlower && (
+        <FlowerDetailModal
+          title="花详情"
+          name={detailFlower.name}
+          rarity={detailFlower.rarity}
+          imageUrl={detailFlower.imageUrl}
+          emoji={detailFlower.isShopSeed ? '🌱' : '🌸'}
+          atoms={(detailFlower.atoms || []) as AtomBrief[]}
+          factorScore={detailFlower.factorScore}
+          onClose={() => setDetailFlower(null)}
+        >
+          <button
+            onClick={() => handleSell(detailFlower)}
+            disabled={selling === detailFlower.id || !detailFlower.sellPrice}
+            className="flex-1 py-2 rounded-lg bg-gradient-to-r from-amber-700 to-yellow-700 text-white text-sm font-bold hover:from-amber-600 hover:to-yellow-600 transition-all disabled:opacity-40"
+          >
+            {selling === detailFlower.id ? '...' : `💰 出售 ${detailFlower.sellPrice}g`}
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-[#1a1a2e] text-gray-400 text-sm hover:text-white transition-colors"
+          >
+            关闭
+          </button>
+        </FlowerDetailModal>
+      )}
     </div>
   );
 };
