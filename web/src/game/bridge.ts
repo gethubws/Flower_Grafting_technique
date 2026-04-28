@@ -23,13 +23,15 @@ export const bridge = new Bridge();
 
 export const BridgeEvent = {
   // Phaser → React
-  SLOT_CLICKED: 'slotClicked',       // slot position + flower data
-  POT_CLICKED: 'potClicked',         // empty pot clicked (position + flowerId or null)
+  SLOT_CLICKED: 'slotClicked',
+  POT_CLICKED: 'potClicked',
+  POT_DETAIL_TOGGLE: 'potDetailToggle', // flower detail popup
+  POT_POSITION: 'potPosition',          // position update for popup placement
 
   // React → Phaser
   REFRESH_GARDEN: 'refreshGarden',
   FUSION_RESULT: 'fusionResult',
-  TOOL_ACTIVATED: 'toolActivated',   // tells Phaser which tool is active
+  TOOL_ACTIVATED: 'toolActivated'
 } as const;
 
 export interface SlotClickedPayload {
@@ -45,4 +47,18 @@ export interface PotClickedPayload {
 
 export interface ToolActivatedPayload {
   tool: 'seed' | 'glove' | 'knife' | null;
+}
+
+export interface PotDetailTogglePayload {
+  position: number;
+  flower: Flower | null;
+  screenX: number;
+  screenY: number;
+}
+
+export interface PotPositionPayload {
+  position: number;
+  flower: Flower | null;
+  screenX: number;
+  screenY: number;
 }

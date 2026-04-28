@@ -9,8 +9,9 @@ import { useSocket } from './hooks/useSocket';
 import { bridge, BridgeEvent } from './game/bridge';
 import { gardenApi } from './api/garden.api';
 import { fusionApi } from './api/fusion.api';
-import type { PotClickedPayload } from './game/bridge';
+import type { PotClickedPayload, PotDetailTogglePayload } from './game/bridge';
 import type { GroupedSeedItem, SoilType, FusionResponse } from './types';
+import { FlowerDetailPopup } from './components/garden/FlowerDetailPopup';
 
 import { RegisterPanel } from './components/user/RegisterPanel';
 import { Toolbar } from './components/common/Toolbar';
@@ -47,6 +48,9 @@ const App: React.FC = () => {
   const [fusionParentB, setFusionParentB] = useState<{ id: string; name: string; stage: string } | null>(null);
   const [fusionSoil, setFusionSoil] = useState<SoilType>('LOAM');
   const [fusing, setFusing] = useState(false);
+
+  // Detail popup state
+  const [detailPopup, setDetailPopup] = useState<PotDetailTogglePayload | null>(null);
 
   // Panel toggles
   const [currentPage, setCurrentPage] = useState<'garden' | 'warehouse' | 'shop'>('garden');
@@ -92,6 +96,19 @@ const App: React.FC = () => {
 
   // Sync tool to Phaser
   useEffect(() => { bridge.emit(BridgeEvent.TOOL_ACTIVATED, { tool: activeTool }); }, [activeTool]);
+
+  // Detail popup listener
+  useEffect(() => {
+    const handler = (payload: PotDetailTogglePayload) => {
+      setDetailPopup((prev) => {
+        // Toggle: clicking same pot closes it
+        if (prev?.position === payload.position) return null;
+        return payload;
+      });
+    };
+    bridge.on(BridgeEvent.POT_DETAIL_TOGGLE, handler);
+    return () => bridge.off(BridgeEvent.POT_DETAIL_TOGGLE, handler);
+  }, []);
 
   // Reset fusion state when knife tool changes
   useEffect(() => {
@@ -158,6 +175,23 @@ const App: React.FC = () => {
       await refreshGarden();
     } catch (e: any) { alert(e.response?.data?.message || '融合失败'); }
     setFusing(false);
+  };
+
+  // Detail popup handlers
+  const handleWaterFromPopup = async (flowerId: string) => {
+    try {
+      await gardenApi.grow(flowerId);
+      await refreshGarden();
+    } catch (e: any) { alert(e.response?.data?.message || '浇水失败'); }
+  };
+  const handleHarvestFromPopup = async (flowerId: string) => {
+    try {
+      const result = await gardenApi.harvest(flowerId);
+      updateGold(result.reward?.gold || 0);
+      alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp | 🌰 获得种子\n📦 花朵已存入仓库`);
+      await refreshGarden();
+      setDetailPopup(null);
+    } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
   };
 
   useEffect(() => {
@@ -294,6 +328,18 @@ const App: React.FC = () => {
             {!fusionStep && (<p className="text-[#8D6E63] text-xs">准备嫁接...</p>)}
           </div>
         </div>
+      )}
+
+      {/* Flower Detail Popup */}
+      {detailPopup && (
+        <FlowerDetailPopup
+          flower={detailPopup.flower}
+          screenX={detailPopup.screenX}
+          screenY={detailPopup.screenY}
+          onClose={() => setDetailPopup(null)}
+          onWater={activeTool === null ? handleWaterFromPopup : undefined}
+          onHarvest={activeTool === 'glove' ? handleHarvestFromPopup : undefined}
+        />
       )}
 
       {/* Fusion Result Modal */}
