@@ -69,4 +69,32 @@ export class AiGatewayService {
     );
     return result;
   }
+
+  /**
+   * Phase 1.5: 批量生成基础花 5 阶段图。
+   */
+  async generateGrowthSet(
+    seedId: string,
+    atoms: any[],
+    rarity: string,
+  ): Promise<Record<string, string>> {
+    this.logger.log(`Generating growth set for seed ${seedId}`);
+
+    const response = await fetch(`${this.baseUrl}/generate-growth-set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        seeds: [{ id: seedId, atoms, rarity }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      this.logger.warn(`Growth set generation failed: ${errText}`);
+      return {};
+    }
+
+    const raw: any = await response.json();
+    return raw.images || {};
+  }
 }

@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from core.config import settings
 from services.placeholder import generate_placeholder
 from services.minio_uploader import upload_image
-from services.prompt_builder import build_prompt, get_negative_prompt
+from services.prompt_builder import build_prompt, build_stage_prompt, get_negative_prompt
 from services.sd_adapter import generate_sd, generate_ui_asset
 from services.image_processor import process_flower_image, optimize_for_web
 
@@ -185,3 +185,43 @@ async def generate_ui_asset_endpoint(req: UIAssetRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"UI asset generation failed: {str(e)}")
+
+
+class GrowthSetRequest(BaseModel):
+    seeds: list[dict] = []  # [{ id, atoms: [...], rarity }]
+    seed: int = 42
+    width: int = 512
+    height: int = 768
+
+
+@router.post("/generate-growth-set")
+async def generate_growth_set(req: GrowthSetRequest):
+    """
+    为种子批量生成 4 张阶段图（seedling/growing/mature/blooming）。
+    种子阶段使用统一占位图，不生成。
+    """
+    try:
+        stages = ["seedling", "growing", "mature", "blooming"]
+        results = {}
+
+        for stage in stages:
+            prompt = build_stage_prompt(
+                req.seeds[0].get("atoms", []) if req.seeds else [],
+                req.seeds[0].get("rarity", "N") if req.seeds else "N",
+                stage,
+            )
+
+            image_bytes = generate_placeholder(
+                rarity=req.seeds[0].get("rarity", "N") if req.seeds else "N",
+                stage=stage.upper(),
+                width=req.width,
+                height=req.height,
+            )
+
+            obj_name = f"assets/growth-{req.seeds[0].get('id','unknown')}-{stage}-{int(time.time())}.png" if req.seeds else f"assets/growth-{stage}.png"
+            results[stage] = upload_image(obj_name, image_bytes)
+
+        return {"success": True, "images": results}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Growth set generation failed: {str(e)}")

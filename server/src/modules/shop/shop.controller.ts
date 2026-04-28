@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { ShopService } from './shop.service';
 import { BuySeedDto } from './dto/buy-seed.dto';
 import { JwtGuard, JwtPayload } from '../../common/guards/jwt.guard';
@@ -7,9 +7,15 @@ import { JwtGuard, JwtPayload } from '../../common/guards/jwt.guard';
 export class ShopController {
   constructor(private readonly shopService: ShopService) {}
 
+  /**
+   * GET /api/shop/seeds?tab=system|player&sort=newest|sales|rarity
+   */
   @Get('seeds')
-  async getSeeds() {
-    return this.shopService.getSeeds();
+  async getSeeds(
+    @Query('tab') tab?: string,
+    @Query('sort') sort?: string,
+  ) {
+    return this.shopService.getSeeds(tab, sort as any);
   }
 
   @Post('buy-seed')
