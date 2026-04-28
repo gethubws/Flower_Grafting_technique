@@ -239,16 +239,16 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full bg-[#0a0a1a] gap-4">
+      <div className="flex flex-col items-center justify-center w-full h-full bg-[#faf7f2] gap-4">
         <div className="text-4xl animate-bounce-soft">🌺</div>
-        <p className="text-gray-500 text-sm animate-pulse">加载中...</p>
+        <p className="text-[#7a8c6e] text-sm animate-pulse">加载中...</p>
       </div>
     );
   }
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full h-full bg-[#1a1a2e]">
+      <div className="w-full h-full bg-[#ffffff]">
         <RegisterPanel />
       </div>
     );
@@ -263,21 +263,21 @@ const App: React.FC = () => {
 
       {/* ==================== Top-Left: User Info ==================== */}
       <div className="absolute top-3 left-3 z-20">
-        <div className="bg-[#0a0a1a]/80 backdrop-blur-md rounded-xl border border-white/5 px-3 py-2 flex items-center gap-3 shadow-lg">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+        <div className="bg-[#faf7f2]/80 backdrop-blur-md rounded-xl border border-[#c5d5b5]/30 px-3 py-2 flex items-center gap-3 shadow-lg">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-[#2e3d23] font-bold text-sm">
             {(user?.name || '?')[0]}
           </div>
           <div>
-            <div className="text-white font-bold text-sm leading-tight">{user?.name}</div>
-            <div className="text-gray-500 text-xxs">
+            <div className="text-[#2e3d23] font-bold text-sm leading-tight">{user?.name}</div>
+            <div className="text-[#7a8c6e] text-xxs">
               Lv.{user?.level}
-              {user?.title && <span className="ml-1 text-purple-400">· {user.title}</span>}
+              {user?.title && <span className="ml-1 text-purple-700">· {user.title}</span>}
             </div>
           </div>
           <div className="flex gap-2 text-xxs ml-1">
-            <span className="text-amber-400 bg-amber-900/20 px-1.5 py-0.5 rounded">💰 {user?.gold}</span>
-            <span className="text-cyan-400 bg-cyan-900/20 px-1.5 py-0.5 rounded">💎 {user?.diamond}</span>
-            <span className="text-purple-400 bg-purple-900/20 px-1.5 py-0.5 rounded">⭐ {user?.xp}</span>
+            <span className="text-amber-700 bg-amber-50/80 px-1.5 py-0.5 rounded">💰 {user?.gold}</span>
+            <span className="text-cyan-700 bg-cyan-100/80 px-1.5 py-0.5 rounded">💎 {user?.diamond}</span>
+            <span className="text-purple-700 bg-purple-50/80 px-1.5 py-0.5 rounded">⭐ {user?.xp}</span>
           </div>
         </div>
       </div>
@@ -288,8 +288,8 @@ const App: React.FC = () => {
           onClick={() => { setShowGardenPanel(!showGardenPanel); setShowShop(false); setShowWarehouse(false); setShowFoundation(false); }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all ${
             showGardenPanel
-              ? 'bg-green-900/40 border border-green-600/30 text-green-300'
-              : 'bg-[#0a0a1a]/60 border border-white/5 text-gray-400 hover:text-white'
+              ? 'bg-green-200/80 border border-green-400/40 text-green-700'
+              : 'bg-[#faf7f2]/60 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:text-[#2e3d23]'
           }`}
         >
           🌻 花园
@@ -299,7 +299,7 @@ const App: React.FC = () => {
             setCurrentPage('shop');
             closeAllPanels();
           }}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all bg-[#0a0a1a]/60 border border-white/5 text-gray-400 hover:text-white"
+          className="px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all bg-[#faf7f2]/60 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:text-[#2e3d23]"
         >
           🛒 商店
         </button>
@@ -308,7 +308,7 @@ const App: React.FC = () => {
       {/* ==================== Overlay: Garden Panel ==================== */}
       {showGardenPanel && (
         <div className="absolute top-16 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto
-                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-white/5 p-3
+                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-[#c5d5b5]/30 p-3
                         animate-fade-in shadow-2xl">
           <GardenPanel />
         </div>
@@ -317,7 +317,7 @@ const App: React.FC = () => {
       {/* ==================== Overlay: Shop Panel ==================== */}
       {showShop && (
         <div className="absolute top-16 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto
-                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-white/5 p-3
+                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-[#c5d5b5]/30 p-3
                         animate-fade-in shadow-2xl">
           <ShopPanel />
         </div>
@@ -326,13 +326,13 @@ const App: React.FC = () => {
       {/* ==================== Overlay: Warehouse Panel (small) ==================== */}
       {showWarehouse && (
         <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
-                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-amber-800/20 p-3
+                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-amber-300/50 p-3
                         animate-fade-in shadow-2xl">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold text-amber-300">🏚️ 仓库</h3>
+            <h3 className="text-sm font-bold text-amber-700">🏚️ 仓库</h3>
             <div className="flex gap-2">
-              <button onClick={() => setCurrentPage('warehouse')} className="text-purple-400 hover:text-purple-300 text-xs">全屏</button>
-              <button onClick={() => setShowWarehouse(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+              <button onClick={() => setCurrentPage('warehouse')} className="text-purple-700 hover:text-purple-600 text-xs">全屏</button>
+              <button onClick={() => setShowWarehouse(false)} className="text-[#9aac8a] hover:text-[#2e3d23] text-xs">✕</button>
             </div>
           </div>
           <WarehousePanel />
@@ -342,11 +342,11 @@ const App: React.FC = () => {
       {/* ==================== Overlay: Foundation Panel ==================== */}
       {showFoundation && (
         <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
-                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-purple-800/20 p-3
+                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-purple-200/60 p-3
                         animate-fade-in shadow-2xl">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold text-purple-300">🧬 性状稳定工程</h3>
-            <button onClick={() => setShowFoundation(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+            <h3 className="text-sm font-bold text-purple-600">🧬 性状稳定工程</h3>
+            <button onClick={() => setShowFoundation(false)} className="text-[#9aac8a] hover:text-[#2e3d23] text-xs">✕</button>
           </div>
           <FoundationPanel />
         </div>
@@ -355,24 +355,24 @@ const App: React.FC = () => {
       {/* ==================== Fusion Flow Indicator ==================== */}
       {activeTool === 'knife' && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-25">
-          <div className="bg-[#0a0a1a]/90 backdrop-blur-lg rounded-xl border border-purple-500/20 p-4
+          <div className="bg-[#faf7f2]/90 backdrop-blur-lg rounded-xl border border-purple-300/60 p-4
                           text-center animate-fade-in shadow-2xl min-w-[200px]">
             <div className="text-2xl mb-2">🔪</div>
             {fusionStep === 'selectA' && (
               <>
-                <p className="text-white font-bold text-sm mb-1">选择第一朵花</p>
-                <p className="text-red-400 text-xs mb-1">⚠️ 嫁接刀下必有一死</p>
-                <p className="text-gray-500 text-xs">点击花园中生长期的花</p>
+                <p className="text-[#2e3d23] font-bold text-sm mb-1">选择第一朵花</p>
+                <p className="text-red-700 text-xs mb-1">⚠️ 嫁接刀下必有一死</p>
+                <p className="text-[#7a8c6e] text-xs">点击花园中生长期的花</p>
               </>
             )}
             {fusionStep === 'selectB' && fusionParentA && (
               <>
-                <p className="text-white font-bold text-sm mb-1">选择第二朵花</p>
+                <p className="text-[#2e3d23] font-bold text-sm mb-1">选择第二朵花</p>
                 <div className="flex items-center justify-center gap-2 mb-1 text-xs">
-                  <span className="text-purple-300">已选：{fusionParentA.name}</span>
+                  <span className="text-purple-600">已选：{fusionParentA.name}</span>
                   <span className="text-red-500">🔪必死</span>
                 </div>
-                <p className="text-gray-500 text-xs">点击花园中另一朵生长期的花</p>
+                <p className="text-[#7a8c6e] text-xs">点击花园中另一朵生长期的花</p>
               </>
             )}
             {fusionStep === 'soil' && showFusionPanel && (
@@ -387,7 +387,7 @@ const App: React.FC = () => {
               />
             )}
             {!fusionStep && (
-              <p className="text-gray-500 text-xs">准备嫁接...</p>
+              <p className="text-[#7a8c6e] text-xs">准备嫁接...</p>
             )}
           </div>
         </div>
@@ -402,11 +402,11 @@ const App: React.FC = () => {
       <div className="absolute bottom-0 left-0 right-0 z-20">
         {/* Seed picker */}
         {activeTool === 'seed' && (
-          <div className="bg-[#0a0a1a]/90 backdrop-blur-md border-t border-amber-800/20 p-2 animate-fade-in">
+          <div className="bg-[#faf7f2]/90 backdrop-blur-md border-t border-amber-300/50 p-2 animate-fade-in">
             <div className="flex items-center gap-2 flex-wrap justify-center">
-              <span className="text-amber-400 text-xs font-medium">选择种子：</span>
+              <span className="text-amber-700 text-xs font-medium">选择种子：</span>
               {seeds.length === 0 ? (
-                <span className="text-gray-500 text-xs">没有种子，去商店购买</span>
+                <span className="text-[#7a8c6e] text-xs">没有种子，去商店购买</span>
               ) : (
                 seeds.map((seed) => (
                   <button
@@ -414,8 +414,8 @@ const App: React.FC = () => {
                     onClick={() => setPickedSeed(pickedSeed?.name === seed.name ? null : seed)}
                     className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
                       pickedSeed?.name === seed.name
-                        ? 'bg-amber-900/50 border border-amber-500 text-amber-300'
-                        : 'bg-[#1a1a2e] border border-[#1a1a3e] text-gray-400 hover:border-amber-800/50'
+                        ? 'bg-amber-200/80 border border-amber-400 text-amber-700'
+                        : 'bg-[#ffffff] border border-[#e8f0e0] text-[#5a6b4c] hover:border-amber-400/50'
                     }`}
                   >
                     <span>🌰</span>
@@ -426,7 +426,7 @@ const App: React.FC = () => {
               )}
             </div>
             {pickedSeed && (
-              <p className="text-amber-400 text-xs text-center mt-1.5 animate-fade-in">
+              <p className="text-amber-700 text-xs text-center mt-1.5 animate-fade-in">
                 👆 已选中「{pickedSeed.name}」，点击花盆种植
               </p>
             )}
@@ -434,8 +434,8 @@ const App: React.FC = () => {
         )}
 
         {activeTool === 'glove' && (
-          <div className="bg-[#0a0a1a]/90 backdrop-blur-md border-t border-green-800/20 p-2 animate-fade-in text-center">
-            <p className="text-green-400 text-xs">👆 点击盛放期（🌸）花朵收获 → 花存入仓库</p>
+          <div className="bg-[#faf7f2]/90 backdrop-blur-md border-t border-green-300/50 p-2 animate-fade-in text-center">
+            <p className="text-green-700 text-xs">👆 点击盛放期（🌸）花朵收获 → 花存入仓库</p>
           </div>
         )}
 
@@ -474,12 +474,12 @@ const FusionSoilPicker: React.FC<{
 }> = ({ fusionParentA, fusionParentB, soil, setSoil, fusing, onFuse, onCancel }) => (
   <div className="animate-fade-in">
     <div className="flex items-center justify-center gap-2 mb-3 text-xs">
-      <span className="text-red-400">{fusionParentA?.name} 🔪</span>
-      <span className="text-purple-400">×</span>
-      <span className="text-white">{fusionParentB?.name}</span>
+      <span className="text-red-700">{fusionParentA?.name} 🔪</span>
+      <span className="text-purple-700">×</span>
+      <span className="text-[#2e3d23]">{fusionParentB?.name}</span>
     </div>
 
-    <p className="text-gray-400 text-xs mb-2">选择土壤：</p>
+    <p className="text-[#5a6b4c] text-xs mb-2">选择土壤：</p>
     <div className="grid grid-cols-2 gap-1.5 mb-3">
       {soils.map((s) => (
         <button
@@ -487,25 +487,25 @@ const FusionSoilPicker: React.FC<{
           onClick={() => setSoil(s.key)}
           className={`text-left p-1.5 rounded-lg text-xs transition-all ${
             soil === s.key
-              ? 'bg-purple-900/50 border border-purple-500 text-white'
-              : 'bg-[#1a1a2e] border border-[#1a1a3e] text-gray-500 hover:border-purple-900/50'
+              ? 'bg-purple-200/80 border border-purple-400 text-[#2e3d23]'
+              : 'bg-[#ffffff] border border-[#e8f0e0] text-[#7a8c6e] hover:border-purple-900/50'
           }`}
         >
           <span className="mr-1">{s.emoji}</span>
           <span className="font-medium">{s.name}</span>
-          <span className="text-gray-700 ml-1">{s.desc}</span>
+          <span className="text-[#b0c2a0] ml-1">{s.desc}</span>
         </button>
       ))}
     </div>
 
     <div className="flex gap-2">
-      <button onClick={onCancel} className="flex-1 py-1.5 rounded-lg bg-[#1a1a2e] text-gray-400 text-xs hover:text-white">
+      <button onClick={onCancel} className="flex-1 py-1.5 rounded-lg bg-[#ffffff] text-[#5a6b4c] text-xs hover:text-[#2e3d23]">
         取消
       </button>
       <button
         onClick={onFuse}
         disabled={fusing}
-        className="flex-1 py-1.5 rounded-lg bg-purple-700 text-white text-xs font-bold hover:bg-purple-600 disabled:opacity-50"
+        className="flex-1 py-1.5 rounded-lg bg-green-600 text-[#2e3d23] text-xs font-bold hover:bg-green-500 disabled:opacity-50"
       >
         {fusing ? '⚗️ 融合中...' : '✨ 开始嫁接'}
       </button>

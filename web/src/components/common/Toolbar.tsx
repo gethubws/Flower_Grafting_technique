@@ -18,12 +18,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const btnClass = (tool: typeof activeTool) =>
     `relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
       activeTool === tool
-        ? 'bg-white/10 border border-white/20 text-white shadow-[0_0_12px_rgba(255,255,255,0.15)]'
-        : 'bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-white/15 hover:text-white'
+        ? 'bg-white/10 border border-[#95a585]/60 text-[#2e3d23] shadow-[0_0_12px_rgba(255,255,255,0.15)]'
+        : 'bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-[#a5b595]/50 hover:text-[#2e3d23]'
     }`;
 
   return (
-    <div className="flex items-center justify-center gap-3 p-3 bg-[#0a0a1a]/90 backdrop-blur-md border-t border-white/5">
+    <div className="flex items-center justify-center gap-3 p-3 bg-[#faf7f2]/90 backdrop-blur-md border-t border-[#c5d5b5]/30">
       {/* Seed Bag */}
       <button
         onClick={() => setActiveTool(activeTool === 'seed' ? null : 'seed')}
@@ -84,7 +84,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {onOpenWarehouse && (
         <button
           onClick={onOpenWarehouse}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-amber-800/50 hover:text-amber-400 transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-amber-400/50 hover:text-amber-700 transition-all"
         >
           <span className="text-lg">🏚️</span>
           <span>仓库</span>
@@ -95,7 +95,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {onOpenFoundation && (
         <button
           onClick={onOpenFoundation}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-purple-800/50 hover:text-purple-400 transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-purple-800/50 hover:text-purple-700 transition-all"
         >
           <span className="text-lg">🧬</span>
           <span>稳定工程</span>
@@ -103,7 +103,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       )}
 
       {/* Hint */}
-      <span className="text-gray-700 text-xs ml-1">
+      <span className="text-[#b0c2a0] text-xs ml-1">
         {activeTool === 'seed' ? '选择种子 → 点花盆播种' :
          activeTool === 'glove' ? '点盛放花朵收获' :
          activeTool === 'knife' ? '选择两朵生长期花嫁接' :

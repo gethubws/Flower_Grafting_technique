@@ -7,7 +7,7 @@ export const createGameConfig = (parentId: string): Phaser.Types.Core.GameConfig
   width: 1024,
   height: 768,
   parent: parentId,
-  backgroundColor: '#1a2f1a',
+  backgroundColor: '#e8f0d8',
   scene: [BootScene, GardenScene],
   scale: {
     mode: Phaser.Scale.FIT,

@@ -6,7 +6,7 @@ import { Button } from '../common/Button';
 import type { FoundationStatus } from '../../types';
 
 const RARITY_COLORS: Record<string, string> = {
-  N: 'text-gray-400', R: 'text-blue-400', SR: 'text-purple-400', SSR: 'text-amber-400', UR: 'text-red-400',
+  N: 'text-[#5a6b4c]', R: 'text-blue-600', SR: 'text-purple-600', SSR: 'text-amber-600', UR: 'text-red-700',
 };
 
 export const FoundationPanel: React.FC = () => {
@@ -46,16 +46,16 @@ export const FoundationPanel: React.FC = () => {
     <div className="animate-fade-in">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">🧬</span>
-        <h2 className="text-lg font-bold text-white">性状稳定工程</h2>
+        <h2 className="text-lg font-bold text-[#2e3d23]">性状稳定工程</h2>
         {user?.title && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/40 text-purple-300 border border-purple-700/30">
+          <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100/80 text-purple-600 border border-purple-700/30">
             🏅 {user.title}
           </span>
         )}
       </div>
 
       {mothers.length === 0 ? (
-        <p className="text-gray-600 text-xs text-center py-6">
+        <p className="text-[#9aac8a] text-xs text-center py-6">
           还没有母株。将融合花收获后，在仓库中点击「🧬育种」指定为母株。
         </p>
       ) : (
@@ -72,7 +72,7 @@ export const FoundationPanel: React.FC = () => {
                   {m.name || '未命名母株'}
                 </div>
                 {m.isFoundation && (
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-300">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100/80 text-amber-700">
                     ⭐ 奠基种
                   </span>
                 )}
@@ -86,17 +86,17 @@ export const FoundationPanel: React.FC = () => {
                     width: `${(m.stabilityProgress / 10) * 100}%`,
                     background: m.isFoundation
                       ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                      : 'linear-gradient(90deg, #533483, #7b2ff7)',
+                      : 'linear-gradient(90deg, #66bb6a, #7b2ff7)',
                   }}
                 />
               </div>
 
               <div className="flex items-center justify-between text-xs">
-                <div className="text-gray-500">
+                <div className="text-[#7a8c6e]">
                   进度 {m.stabilityProgress}/10
-                  {!m.isFoundation && <span className="ml-1 text-gray-700">(还需 {m.remaining} 次相似)</span>}
+                  {!m.isFoundation && <span className="ml-1 text-[#b0c2a0]">(还需 {m.remaining} 次相似)</span>}
                 </div>
-                <div className="text-gray-600">
+                <div className="text-[#9aac8a]">
                   {m.atomCount}因子 · 积分{m.factorScore}
                 </div>
               </div>
@@ -118,7 +118,7 @@ export const FoundationPanel: React.FC = () => {
                         type="number"
                         value={price}
                         onChange={(e) => setPrice(Number(e.target.value))}
-                        className="w-16 px-1.5 py-0.5 rounded bg-[#1a1a2e] border border-[#0f3460] text-white text-xs"
+                        className="w-16 px-1.5 py-0.5 rounded bg-[#ffffff] border border-[#c5e1a5] text-[#2e3d23] text-xs"
                         min={1}
                       />
                       <Button
@@ -132,7 +132,7 @@ export const FoundationPanel: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <p className="text-gray-700 text-xs">继续融合以推进稳定化</p>
+                  <p className="text-[#b0c2a0] text-xs">继续融合以推进稳定化</p>
                 )}
               </div>
             </div>

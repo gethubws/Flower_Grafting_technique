@@ -48,15 +48,15 @@ export const GardenPanel: React.FC = () => {
       {seeds.length > 0 && (
         <div className="mb-3 animate-fade-in">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-amber-400 text-sm">🌰</span>
-            <span className="text-sm font-semibold text-amber-400">种子库存</span>
+            <span className="text-amber-700 text-sm">🌰</span>
+            <span className="text-sm font-semibold text-amber-700">种子库存</span>
             <span className="text-amber-600 text-xs">({seeds.reduce((s, i) => s + i.count, 0)}颗)</span>
           </div>
           {seeds.map((seed) => (
-            <div key={seed.name} className="card p-2 flex items-center gap-2 mb-1 bg-amber-900/10 border-amber-800/20">
+            <div key={seed.name} className="card p-2 flex items-center gap-2 mb-1 bg-amber-50 border-amber-300/50">
               <span className="text-lg">🌰</span>
-              <span className="flex-1 text-white text-xs">{seed.name}</span>
-              <span className="text-amber-400 text-xs font-bold bg-amber-900/40 px-1.5 py-0.5 rounded-full">
+              <span className="flex-1 text-[#2e3d23] text-xs">{seed.name}</span>
+              <span className="text-amber-700 text-xs font-bold bg-amber-100/80 px-1.5 py-0.5 rounded-full">
                 ×{seed.count}
               </span>
             </div>
@@ -67,8 +67,8 @@ export const GardenPanel: React.FC = () => {
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">🌻</span>
-          <h2 className="text-lg font-bold text-white">花园</h2>
-          <span className="text-gray-600 text-xs">({slots.filter(s => s.flower).length}/6)</span>
+          <h2 className="text-lg font-bold text-[#2e3d23]">花园</h2>
+          <span className="text-[#9aac8a] text-xs">({slots.filter(s => s.flower).length}/6)</span>
         </div>
         <Button onClick={refresh} variant="secondary" size="xs">🔄</Button>
       </div>
@@ -82,7 +82,7 @@ export const GardenPanel: React.FC = () => {
             }`}
           >
             <span className={`text-xs w-7 h-7 flex items-center justify-center rounded-full ${
-              slot.flower ? 'bg-[#1a1a3e] text-gray-400' : 'bg-transparent text-gray-600'
+              slot.flower ? 'bg-[#e8f0e0] text-[#5a6b4c]' : 'bg-transparent text-[#9aac8a]'
             }`}>
               {slot.position + 1}
             </span>
@@ -91,7 +91,7 @@ export const GardenPanel: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="text-lg">{getStageEmoji(slot.flower.stage)}</span>
-                  <span className="text-white font-medium text-xs truncate">{slot.flower.name}</span>
+                  <span className="text-[#2e3d23] font-medium text-xs truncate">{slot.flower.name}</span>
                   <span className={`stage-badge stage-${slot.flower.stage} ml-auto`}>
                     {getStageLabel(slot.flower.stage)}
                   </span>
@@ -104,14 +104,14 @@ export const GardenPanel: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <span className="flex-1 text-gray-700 text-xs">空槽位 — 工具栏播种</span>
+              <span className="flex-1 text-[#b0c2a0] text-xs">空槽位 — 工具栏播种</span>
             )}
 
             {slot.flower && slot.flower.stage !== 'BLOOMING' && slot.flower.stage !== 'RECOVERING' && (
               <Button onClick={() => handleGrow(slot.flower!.id)} variant="secondary" size="xs">💧</Button>
             )}
             {slot.flower && slot.flower.stage === 'BLOOMING' && (
-              <span className="text-pink-400 text-xs">🧤可收获</span>
+              <span className="text-pink-700 text-xs">🧤可收获</span>
             )}
           </div>
         ))}

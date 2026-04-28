@@ -31,10 +31,10 @@ export const PlaceholderCard: React.FC<PlaceholderCardProps> = ({ rarity, atoms 
       className={`w-48 h-64 rounded-2xl bg-gradient-to-b ${gradient} ${glow} shadow-lg flex flex-col items-center justify-center gap-2 p-4 animate-pulse`}
     >
       <span className="text-5xl">🌸</span>
-      <span className="text-white font-bold">{rarity}</span>
+      <span className="text-[#2e3d23] font-bold">{rarity}</span>
       <div className="flex flex-wrap gap-1 justify-center">
         {atoms.slice(0, 5).map((a, i) => (
-          <span key={i} className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-200">
+          <span key={i} className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-[#2a4a1a]">
             {a}
           </span>
         ))}

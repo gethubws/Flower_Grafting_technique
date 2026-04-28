@@ -6,7 +6,7 @@ import { Button } from '../common/Button';
 import type { WarehouseFlower } from '../../types';
 
 const RARITY_COLORS: Record<string, string> = {
-  N: 'text-gray-400', R: 'text-blue-400', SR: 'text-purple-400', SSR: 'text-amber-400', UR: 'text-red-400',
+  N: 'text-[#5a6b4c]', R: 'text-blue-600', SR: 'text-purple-600', SSR: 'text-amber-600', UR: 'text-red-700',
 };
 
 export const WarehousePanel: React.FC = () => {
@@ -52,10 +52,10 @@ export const WarehousePanel: React.FC = () => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">🏚️</span>
-          <h2 className="text-lg font-bold text-white">仓库</h2>
-          <span className="text-gray-600 text-xs">({flowers.length}株)</span>
+          <h2 className="text-lg font-bold text-[#2e3d23]">仓库</h2>
+          <span className="text-[#9aac8a] text-xs">({flowers.length}株)</span>
         </div>
-        <span className="text-amber-400 text-xs">总值 💰{totalValue}</span>
+        <span className="text-amber-700 text-xs">总值 💰{totalValue}</span>
       </div>
 
       {/* Filter */}
@@ -65,7 +65,7 @@ export const WarehousePanel: React.FC = () => {
             key={r}
             onClick={() => setFilter(r)}
             className={`px-2 py-0.5 rounded text-xs transition-all ${
-              filter === r ? 'bg-purple-900/50 text-white border border-purple-500' : 'bg-[#1a1a2e] text-gray-500 hover:text-gray-300'
+              filter === r ? 'bg-purple-200/80 text-[#2e3d23] border border-purple-400' : 'bg-[#ffffff] text-[#7a8c6e] hover:text-[#3a5a2a]'
             }`}
           >
             {r || '全部'}
@@ -74,7 +74,7 @@ export const WarehousePanel: React.FC = () => {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-600 text-xs text-center py-6">
+        <p className="text-[#9aac8a] text-xs text-center py-6">
           {flowers.length === 0 ? '仓库空空如也，收获花朵后会出现在这里' : '没有该稀有度的花'}
         </p>
       ) : (
@@ -86,10 +86,10 @@ export const WarehousePanel: React.FC = () => {
             >
               <div className="text-2xl">{f.isShopSeed ? '🌱' : '🌸'}</div>
               <div className="flex-1 min-w-0">
-                <div className={`font-medium text-sm ${RARITY_COLORS[f.rarity] || 'text-white'}`}>
+                <div className={`font-medium text-sm ${RARITY_COLORS[f.rarity] || 'text-[#2e3d23]'}`}>
                   {f.name || '未知花'}
                 </div>
-                <div className="text-gray-600 text-xs flex gap-2">
+                <div className="text-[#9aac8a] text-xs flex gap-2">
                   <span>{f.rarity}级</span>
                   <span>·</span>
                   <span>{f.atomCount}因子</span>

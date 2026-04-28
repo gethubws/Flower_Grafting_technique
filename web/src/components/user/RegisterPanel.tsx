@@ -26,10 +26,10 @@ export const RegisterPanel: React.FC = () => {
     <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
       <div className="text-center animate-fade-in">
         <div className="text-6xl mb-4 animate-bounce-soft">🌺</div>
-        <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-[#2e3d23] mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           花语嫁接师
         </h1>
-        <p className="text-gray-500 text-sm">注册即玩，培育你的专属花语</p>
+        <p className="text-[#7a8c6e] text-sm">注册即玩，培育你的专属花语</p>
       </div>
 
       <div className="w-full max-w-xs animate-fade-in" style={{ animationDelay: '0.1s' }}>
@@ -43,7 +43,7 @@ export const RegisterPanel: React.FC = () => {
           className="input-field text-center text-lg"
           autoFocus
         />
-        {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+        {error && <p className="text-red-700 text-sm mt-2 text-center">{error}</p>}
       </div>
 
       <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
@@ -57,7 +57,7 @@ export const RegisterPanel: React.FC = () => {
         </Button>
       </div>
 
-      <p className="text-gray-700 text-xs absolute bottom-4">v0.1 Phase 1</p>
+      <p className="text-[#b0c2a0] text-xs absolute bottom-4">v0.1 Phase 1</p>
     </div>
   );
 };

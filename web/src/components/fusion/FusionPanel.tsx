@@ -63,8 +63,8 @@ export const FusionPanel: React.FC = () => {
     <div className="card p-3 animate-fade-in animate-pulse-glow">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">⚗️</span>
-        <span className="text-white font-bold text-sm">嫁接融合</span>
-        <span className="text-purple-400 text-xs ml-auto">{fusionQueue.length}/2</span>
+        <span className="text-[#2e3d23] font-bold text-sm">嫁接融合</span>
+        <span className="text-purple-700 text-xs ml-auto">{fusionQueue.length}/2</span>
       </div>
 
       {/* Soil selection */}
@@ -75,13 +75,13 @@ export const FusionPanel: React.FC = () => {
             onClick={() => setSoil(s.key)}
             className={`text-left p-1.5 rounded-lg text-xs transition-all ${
               soil === s.key
-                ? 'bg-purple-900/50 border border-purple-500 text-white'
-                : 'bg-[#1a1a2e] border border-[#1a1a3e] text-gray-500 hover:border-[#533483]'
+                ? 'bg-purple-200/80 border border-purple-400 text-[#2e3d23]'
+                : 'bg-[#ffffff] border border-[#e8f0e0] text-[#7a8c6e] hover:border-[#66bb6a]'
             }`}
           >
             <span className="mr-1">{s.emoji}</span>
             <span className="font-medium">{s.name}</span>
-            <span className="block text-gray-600 ml-4">{s.desc}</span>
+            <span className="block text-[#9aac8a] ml-4">{s.desc}</span>
           </button>
         ))}
       </div>

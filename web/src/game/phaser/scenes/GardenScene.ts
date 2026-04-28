@@ -80,7 +80,7 @@ export class GardenScene extends Phaser.Scene {
 
     // Title
     this.add.text(W / 2, 20, '🌺 你的花园', {
-      fontSize: '24px', color: '#ffffff', fontFamily: 'Arial',
+      fontSize: '24px', color: '#2e3d23', fontFamily: 'Arial',
       stroke: '#2d5a27', strokeThickness: 4,
     }).setOrigin(0.5).setDepth(30);
 
@@ -152,7 +152,7 @@ export class GardenScene extends Phaser.Scene {
 
     // Name + stage labels
     container.add(this.add.text(0, 32, flower.name || '花', {
-      fontSize: '9px', color: '#fff', fontFamily: 'Arial',
+      fontSize: '9px', color: '#2e3d23', fontFamily: 'Arial',
       stroke: '#000', strokeThickness: 3, align: 'center',
     }).setOrigin(0.5));
 

@@ -14,11 +14,11 @@ interface Props {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  N: 'text-gray-400 bg-gray-800/40 border-gray-600/30',
-  R: 'text-blue-400 bg-blue-900/20 border-blue-500/30',
-  SR: 'text-purple-400 bg-purple-900/20 border-purple-500/30',
-  SSR: 'text-amber-400 bg-amber-900/20 border-amber-500/30',
-  UR: 'text-red-400 bg-red-900/20 border-red-500/40',
+  N: 'text-[#5a6b4c] bg-gray-800/40 border-gray-600/30',
+  R: 'text-blue-700 bg-blue-100/80 border-blue-400/30',
+  SR: 'text-purple-700 bg-purple-50/80 border-purple-400/30',
+  SSR: 'text-amber-700 bg-amber-50/80 border-amber-400/30',
+  UR: 'text-red-700 bg-red-100/80 border-red-500/40',
 };
 
 const LEVEL_DOT: Record<string, string> = {
@@ -30,11 +30,11 @@ const RARITY_LABEL: Record<string, string> = {
 };
 
 const RARITY_BG: Record<string, string> = {
-  N: 'from-gray-800 to-gray-900',
-  R: 'from-blue-900/60 to-gray-900',
-  SR: 'from-purple-900/60 to-gray-900',
-  SSR: 'from-amber-900/60 to-gray-900',
-  UR: 'from-red-900/60 to-gray-900',
+  N: 'from-gray-100 to-gray-50',
+  R: 'from-blue-50 to-gray-50',
+  SR: 'from-purple-50 to-gray-50',
+  SSR: 'from-amber-50 to-gray-50',
+  UR: 'from-red-50 to-gray-50',
 };
 
 export const FlowerDetailModal: React.FC<Props> = ({
@@ -48,22 +48,22 @@ export const FlowerDetailModal: React.FC<Props> = ({
   onClose,
   children,
 }) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#2e3d23]/30 backdrop-blur-sm" onClick={onClose}>
     <div
       onClick={(e) => e.stopPropagation()}
-      className={`bg-gradient-to-b ${RARITY_BG[rarity] || RARITY_BG.N} border border-white/10 rounded-2xl max-w-lg w-[90vw] max-h-[85vh] overflow-y-auto animate-fade-in shadow-2xl`}
+      className={`bg-gradient-to-b ${RARITY_BG[rarity] || RARITY_BG.N} border border-[#b5c5a5]/40 rounded-2xl max-w-lg w-[90vw] max-h-[85vh] overflow-y-auto animate-fade-in shadow-2xl`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/5">
+      <div className="flex items-center justify-between p-4 border-b border-[#c5d5b5]/30">
         <div>
-          <h2 className="text-white font-bold text-base">{title}</h2>
-          <p className="text-gray-500 text-xs">{name || '未知花'}</p>
+          <h2 className="text-[#2e3d23] font-bold text-base">{title}</h2>
+          <p className="text-[#7a8c6e] text-xs">{name || '未知花'}</p>
         </div>
-        <button onClick={onClose} className="text-gray-500 hover:text-white text-lg leading-none">✕</button>
+        <button onClick={onClose} className="text-[#7a8c6e] hover:text-[#2e3d23] text-lg leading-none">✕</button>
       </div>
 
       {/* Image */}
-      <div className="h-64 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
+      <div className="h-64 bg-[#faf7f2] flex items-center justify-center overflow-hidden">
         {imageUrl ? (
           <img src={imageUrl} alt={name || '花'} className="w-full h-full object-contain" />
         ) : (
@@ -72,29 +72,29 @@ export const FlowerDetailModal: React.FC<Props> = ({
       </div>
 
       {/* Stats bar */}
-      <div className="flex justify-around py-3 border-b border-white/5 text-center text-xs">
+      <div className="flex justify-around py-3 border-b border-[#c5d5b5]/30 text-center text-xs">
         <div>
-          <div className="text-gray-500">稀有度</div>
-          <div className={`font-bold ${LEVEL_COLORS[rarity]?.split(' ')[0] || 'text-white'}`}>
+          <div className="text-[#7a8c6e]">稀有度</div>
+          <div className={`font-bold ${LEVEL_COLORS[rarity]?.split(' ')[0] || 'text-[#2e3d23]'}`}>
             {RARITY_LABEL[rarity] || rarity}
           </div>
         </div>
         <div>
-          <div className="text-gray-500">因子数</div>
-          <div className="text-white font-bold">{atoms.length}</div>
+          <div className="text-[#7a8c6e]">因子数</div>
+          <div className="text-[#2e3d23] font-bold">{atoms.length}</div>
         </div>
         <div>
-          <div className="text-gray-500">积分</div>
-          <div className="text-amber-400 font-bold">{factorScore || 0}</div>
+          <div className="text-[#7a8c6e]">积分</div>
+          <div className="text-amber-700 font-bold">{factorScore || 0}</div>
         </div>
       </div>
 
       {/* Atoms list */}
       <div className="p-4">
-        <h3 className="text-gray-400 text-xs font-medium mb-3">🧬 因子详情</h3>
+        <h3 className="text-[#5a6b4c] text-xs font-medium mb-3">🧬 因子详情</h3>
         <div className="flex flex-wrap gap-2">
           {atoms.length === 0 ? (
-            <span className="text-gray-600 text-xs">暂无因子数据</span>
+            <span className="text-[#9aac8a] text-xs">暂无因子数据</span>
           ) : (
             atoms.map((a, i) => (
               <span
@@ -111,7 +111,7 @@ export const FlowerDetailModal: React.FC<Props> = ({
 
       {/* Actions */}
       {children && (
-        <div className="p-4 border-t border-white/5 flex gap-2">
+        <div className="p-4 border-t border-[#c5d5b5]/30 flex gap-2">
           {children}
         </div>
       )}
