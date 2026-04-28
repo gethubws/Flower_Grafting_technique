@@ -78,14 +78,14 @@ export class GardenScene extends Phaser.Scene {
     shadow.fillEllipse(0, 22, 80, 16);
     g.add(shadow);
 
-    // Clay pot PNG (centered, pot mouth at y≈-35)
-    const pot = this.add.image(0, 0, 'pot-clay').setOrigin(0.5, 0.45).setDisplaySize(88, 68);
+    // Clay pot PNG (centered, no bg, pot mouth at y≈-40)
+    const pot = this.add.image(0, 0, 'pot-clay').setOrigin(0.5, 0.42).setDisplaySize(96, 82);
     g.add(pot);
 
     // Soil dark ellipse on top of pot mouth
     const soil = this.add.graphics();
     soil.fillGradientStyle(0x5D4037, 0x5D4037, 0x3E2723, 0x3E2723, 1);
-    soil.fillEllipse(0, -36, 66, 8);
+    soil.fillEllipse(0, -40, 72, 8);
     g.add(soil);
 
     this.potGraphics.set(idx, g);
