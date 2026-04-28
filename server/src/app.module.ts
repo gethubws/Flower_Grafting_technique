@@ -14,6 +14,7 @@ import { FusionModule } from './modules/fusion/fusion.module';
 import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
 import { AtomModule } from './modules/atom/atom.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { FoundationModule } from './modules/foundation/foundation.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
     FusionModule,
     AiGatewayModule,
     WarehouseModule,
+    FoundationModule,
   ],
   controllers: [AppController],
   providers: [

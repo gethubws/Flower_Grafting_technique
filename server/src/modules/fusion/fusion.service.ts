@@ -287,7 +287,7 @@ export class FusionService {
     // 基因差异 ≤ 3？
     const motherRaw = mother.atoms as any;
     const motherAtoms: string[] = Array.isArray(motherRaw)
-      ? motherRaw.map((a: any) => (typeof a === 'string' ? a : a.id))
+      ? motherRaw.map((a: any) => (typeof a === 'string' ? a : (a.id || a.atomId)))
       : [];
     const resultAtomIds = resultAtoms.map((a: AtomDefinition) => a.id);
 
