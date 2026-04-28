@@ -144,19 +144,24 @@ export class GardenService {
         data: { xp: { increment: xpReward } },
       });
 
-      // 2. 必掉种子（作为 SEED 阶段 Flower 存入库，供 inventory 查询）
-      const droppedSeed = await tx.flower.create({
-        data: {
-          ownerId: userId,
-          name: flower.name || `${rarity}花`,
-          stage: 'SEED',
-          progress: 0,
-          rarity: flower.rarity,
-          atoms: flower.atoms as any,
-          factorScore: flower.factorScore,
-          isShopSeed: false,
-        },
-      });
+      // 2. 只有基础花（商店购买的）收获时才掉落种子
+      // 融合花不产生种子 — 它们是终端产物，只能出售换金币
+      let seedDropped = false;
+      if (flower.isShopSeed) {
+        await tx.flower.create({
+          data: {
+            ownerId: userId,
+            name: flower.name || `${rarity}花`,
+            stage: 'SEED',
+            progress: 0,
+            rarity: flower.rarity,
+            atoms: flower.atoms as any,
+            factorScore: flower.factorScore,
+            isShopSeed: false,
+          },
+        });
+        seedDropped = true;
+      }
 
       // 3. 预计算售价（出售时用）
       let sellPrice = 0;
@@ -208,7 +213,7 @@ export class GardenService {
         rarity,
         xpReward,
         sellPrice,
-        seedDropped: true,
+        seedDropped,
       };
     });
   }

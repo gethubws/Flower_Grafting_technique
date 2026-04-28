@@ -136,7 +136,7 @@ const App: React.FC = () => {
         try {
           const result = await gardenApi.harvest(payload.flowerId!);
           updateGold(result.reward?.gold || 0);
-          alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp  |  🌰 获得种子\n📦 花朵已存入仓库，可出售换金币`);
+          alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp${result.seedDropped ? '  |  🌰 获得种子' : ''}\n📦 花朵已存入仓库，可出售换金币`);
           await refreshGarden();
         } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
         return;
@@ -188,7 +188,7 @@ const App: React.FC = () => {
     try {
       const result = await gardenApi.harvest(flowerId);
       updateGold(result.reward?.gold || 0);
-      alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp | 🌰 获得种子\n📦 花朵已存入仓库`);
+      alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp${result.seedDropped ? ' | 🌰 获得种子' : ''}\n📦 花朵已存入仓库`);
       await refreshGarden();
       setDetailPopup(null);
     } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
