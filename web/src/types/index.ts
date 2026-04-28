@@ -149,6 +149,8 @@ export interface PlayerSeedItem {
   totalSold: number;
   revenueShare: number;
   atomCount: number;
+  imageUrl: string | null;
+  foundationFlowerId?: string;
   createdAt: string;
 }
 

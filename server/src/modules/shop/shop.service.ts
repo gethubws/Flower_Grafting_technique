@@ -71,6 +71,14 @@ export class ShopService {
       });
     }
 
+    // 为每个玩家种子查找对应的原花（获取盛放图）
+    const flowerIds = seeds.map((s) => s.foundationFlowerId).filter(Boolean) as string[];
+    const flowers = await this.prisma.flower.findMany({
+      where: { id: { in: flowerIds } },
+      select: { id: true, imageUrl: true, growthImageUrl: true },
+    });
+    const flowerImageMap = new Map(flowers.map((f) => [f.id, f.imageUrl || f.growthImageUrl]));
+
     return seeds.map((s) => ({
       id: s.id,
       name: s.name,
@@ -81,6 +89,8 @@ export class ShopService {
       totalSold: s.totalSold,
       revenueShare: s.revenueShare,
       atomCount: Array.isArray(s.atomLibrary) ? s.atomLibrary.length : 0,
+      imageUrl: s.foundationFlowerId ? flowerImageMap.get(s.foundationFlowerId) || null : null,
+      foundationFlowerId: s.foundationFlowerId,
       createdAt: s.createdAt,
     }));
   }

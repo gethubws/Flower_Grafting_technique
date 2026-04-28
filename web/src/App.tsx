@@ -20,6 +20,8 @@ import { FusionPanel } from './components/fusion/FusionPanel';
 import { FusionResultModal } from './components/fusion/FusionResultModal';
 import { WarehousePanel } from './components/warehouse/WarehousePanel';
 import { FoundationPanel } from './components/foundation/FoundationPanel';
+import { WarehousePage } from './components/warehouse/WarehousePage';
+import { ShopPage } from './components/shop/ShopPage';
 
 type ToolType = 'seed' | 'glove' | 'knife' | null;
 type FusionStep = 'selectA' | 'selectB' | 'soil' | null;
@@ -46,6 +48,7 @@ const App: React.FC = () => {
   const [fusing, setFusing] = useState(false);
 
   // Panel toggles
+  const [currentPage, setCurrentPage] = useState<'garden' | 'warehouse' | 'shop'>('garden');
   const [showShop, setShowShop] = useState(false);
   const [showGardenPanel, setShowGardenPanel] = useState(true);
   const [showFusionPanel, setShowFusionPanel] = useState(false);
@@ -226,7 +229,7 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [resultFlower]);
 
-  // Close any overlay panel
+  // Close all overlay panels
   const closeAllPanels = () => {
     setShowShop(false);
     setShowGardenPanel(false);
@@ -292,12 +295,11 @@ const App: React.FC = () => {
           🌻 花园
         </button>
         <button
-          onClick={() => { setShowShop(!showShop); setShowGardenPanel(false); setShowWarehouse(false); setShowFoundation(false); }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all ${
-            showShop
-              ? 'bg-amber-900/40 border border-amber-600/30 text-amber-300'
-              : 'bg-[#0a0a1a]/60 border border-white/5 text-gray-400 hover:text-white'
-          }`}
+          onClick={() => {
+            setCurrentPage('shop');
+            closeAllPanels();
+          }}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all bg-[#0a0a1a]/60 border border-white/5 text-gray-400 hover:text-white"
         >
           🛒 商店
         </button>
@@ -321,14 +323,17 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* ==================== Overlay: Warehouse Panel ==================== */}
+      {/* ==================== Overlay: Warehouse Panel (small) ==================== */}
       {showWarehouse && (
         <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
                         bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-amber-800/20 p-3
                         animate-fade-in shadow-2xl">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-sm font-bold text-amber-300">🏚️ 仓库</h3>
-            <button onClick={() => setShowWarehouse(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+            <div className="flex gap-2">
+              <button onClick={() => setCurrentPage('warehouse')} className="text-purple-400 hover:text-purple-300 text-xs">全屏</button>
+              <button onClick={() => setShowWarehouse(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+            </div>
           </div>
           <WarehousePanel />
         </div>
@@ -438,16 +443,20 @@ const App: React.FC = () => {
           activeTool={activeTool}
           setActiveTool={(t) => { setActiveTool(t); if (t !== 'seed') setPickedSeed(null); }}
           seedCount={totalSeeds}
-          onOpenWarehouse={() => {
-            closeAllPanels();
-            setShowWarehouse(!showWarehouse);
-          }}
+          onOpenWarehouse={() => setCurrentPage('warehouse')}
           onOpenFoundation={() => {
             closeAllPanels();
             setShowFoundation(!showFoundation);
           }}
         />
       </div>
+      {/* ==================== Full-Screen Pages ==================== */}
+      {currentPage === 'warehouse' && (
+        <WarehousePage onClose={() => setCurrentPage('garden')} />
+      )}
+      {currentPage === 'shop' && (
+        <ShopPage onClose={() => setCurrentPage('garden')} />
+      )}
     </div>
   );
 };
