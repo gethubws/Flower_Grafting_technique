@@ -31,7 +31,10 @@ export class GardenScene extends Phaser.Scene {
 
   constructor() { super({ key: 'GardenScene' }); }
 
-  preload() { this.load.image('bg-garden', '/assets/bg-garden.png'); }
+  preload() {
+    this.load.image('bg-garden', '/assets/bg-garden.png');
+    this.load.image('pot-clay', '/assets/pot.png');
+  }
 
   create() {
     const W = 1024, H = 768;
@@ -67,55 +70,31 @@ export class GardenScene extends Phaser.Scene {
 
   private drawPot(idx: number) {
     const p = POT_POSITIONS[idx];
-    const g = this.add.container(p.x, p.y + 10).setDepth(1);
-    const gr = this.add.graphics();
+    const g = this.add.container(p.x, p.y).setDepth(1);
 
-    // Pot shadow
-    gr.fillStyle(0x3E2723, 0.15);
-    gr.fillEllipse(0, 18, 72, 18);
-    // Outer shadow glow
-    gr.fillStyle(0x8D6E63, 0.06);
-    gr.fillEllipse(0, 24, 90, 24);
+    // Pot shadow on ground
+    const shadow = this.add.graphics();
+    shadow.fillStyle(0x3E2723, 0.12);
+    shadow.fillEllipse(0, 22, 80, 16);
+    g.add(shadow);
 
-    // Pot body (trapezoid-like: wider at top via multiple overlapped shapes)
-    // Use fillGradientStyle for the ceramic gradient
-    gr.fillGradientStyle(0xD7CCC8, 0xBCAAA4, 0x8D6E63, 0x6D4C41, 1);
-    gr.fillRoundedRect(-38, -20, 76, 46, 6);
-    // Slightly narrower lower portion
-    gr.fillGradientStyle(0xBCAAA4, 0xA1887F, 0x7B6B60, 0x5D4037, 1);
-    gr.fillRoundedRect(-34, -7, 68, 30, 5);
+    // Clay pot PNG (centered, pot mouth at y≈-35)
+    const pot = this.add.image(0, 0, 'pot-clay').setOrigin(0.5, 0.45).setDisplaySize(88, 68);
+    g.add(pot);
 
-    // Bottom rim
-    gr.fillStyle(0x8D6E63, 1);
-    gr.fillRoundedRect(-34, 22, 68, 6, 3);
+    // Soil dark ellipse on top of pot mouth
+    const soil = this.add.graphics();
+    soil.fillGradientStyle(0x5D4037, 0x5D4037, 0x3E2723, 0x3E2723, 1);
+    soil.fillEllipse(0, -36, 66, 8);
+    g.add(soil);
 
-    // Top rim (pot mouth)
-    gr.fillGradientStyle(0xBCAAA4, 0xBCAAA4, 0xA1887F, 0xA1887F, 1);
-    gr.fillEllipse(0, -19, 82, 14);
-
-    // Soil (dark ellipse inside rim)
-    gr.fillGradientStyle(0x5D4037, 0x5D4037, 0x3E2723, 0x3E2723, 1);
-    gr.fillEllipse(0, -20, 70, 9);
-
-    // Highlight reflection (left side, white semi-transparent)
-    gr.fillStyle(0xFFFFFF, 0.1);
-    gr.fillRoundedRect(-30, -14, 10, 30, 3);
-
-    // Decorative horizontal grooves
-    gr.fillStyle(0x5D4037, 0.12);
-    gr.fillRoundedRect(-30, 0, 60, 1.5, 1);
-    gr.fillRoundedRect(-30, 10, 60, 1.5, 1);
-    gr.fillStyle(0x5D4037, 0.06);
-    gr.fillRoundedRect(-30, 16, 60, 1, 1);
-
-    g.add(gr);
     this.potGraphics.set(idx, g);
   }
 
   private setupPotZone(idx: number) {
     const p = POT_POSITIONS[idx];
     // Interactive zone covers the pot + soil area
-    const zone = this.add.zone(p.x, p.y - 25, 85, 110)
+    const zone = this.add.zone(p.x, p.y - 20, 80, 100)
       .setInteractive({ useHandCursor: true }).setDepth(20);
     this.potZones.set(idx, zone);
 
@@ -125,7 +104,7 @@ export class GardenScene extends Phaser.Scene {
       zone.setAlpha(0.06);
       // Scale pot up slightly on hover
       const potG = this.potGraphics.get(idx);
-      if (potG) this.tweens.add({ targets: potG, scaleX: 1.05, scaleY: 1.05, y: POT_POSITIONS[idx].y + 10 - 2, duration: 200, ease: 'Back.easeOut' });
+      if (potG) this.tweens.add({ targets: potG, scaleX: 1.06, scaleY: 1.06, y: POT_POSITIONS[idx].y - 2, duration: 200, ease: 'Back.easeOut' });
       if (this.activeTool) {
         this.input.setDefaultCursor(
           this.activeTool === 'knife' ? 'crosshair' : this.activeTool === 'seed' ? 'cell' : 'pointer'
@@ -136,7 +115,7 @@ export class GardenScene extends Phaser.Scene {
       hovered = false;
       zone.setAlpha(0);
       const potG = this.potGraphics.get(idx);
-      if (potG) this.tweens.add({ targets: potG, scaleX: 1, scaleY: 1, y: POT_POSITIONS[idx].y + 10, duration: 200, ease: 'Back.easeOut' });
+      if (potG) this.tweens.add({ targets: potG, scaleX: 1, scaleY: 1, y: POT_POSITIONS[idx].y, duration: 200, ease: 'Back.easeOut' });
       this.input.setDefaultCursor('default');
     });
     zone.on('pointerdown', () => {
