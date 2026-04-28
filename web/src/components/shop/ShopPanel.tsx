@@ -20,11 +20,13 @@ export const ShopPanel: React.FC = () => {
 
   useEffect(() => {
     if (tab === 'system') {
-      shopApi.getSeeds('system').then(setSystemSeeds);
+      shopApi.getSeeds('system').then((data: any) => {
+        setSystemSeeds(data?.system || data || []);
+      });
     } else {
-      shopApi.getSeeds('player', sort).then((data: any) =>
-        setPlayerSeeds(Array.isArray(data) ? data : (data?.player || []))
-      );
+      shopApi.getSeeds('player', sort).then((data: any) => {
+        setPlayerSeeds(data?.player || data || []);
+      });
     }
   }, [tab, sort]);
 
