@@ -7,17 +7,6 @@ const POT_POSITIONS = [
   { x: 250, y: 560 }, { x: 512, y: 560 }, { x: 774, y: 560 },
 ];
 
-// Stage → visual params
-const STAGE_CONFIG: Record<string, { label: string; colors: number[]; labelColor: string; labelBg: number[]; scale: number }> = {
-  SEED:     { label: '🌰 种子', colors: [0xD7CCC8, 0xA1887F], labelColor: '#5D4037', labelBg: [0xD7CCC8, 0xA1887F], scale: 0.85 },
-  SEEDLING: { label: '🌱 幼苗', colors: [0xC8E6C9, 0x81C784], labelColor: '#1B5E20', labelBg: [0xC8E6C9, 0x81C784], scale: 0.92 },
-  GROWING:  { label: '🌿 成长', colors: [0xB3E5FC, 0x4FC3F7], labelColor: '#01579B', labelBg: [0xB3E5FC, 0x4FC3F7], scale: 1.0 },
-  MATURE:   { label: '🌼 成熟', colors: [0xFFF176, 0xFFD54F], labelColor: '#5D4037', labelBg: [0xFFF176, 0xFFD54F], scale: 1.05 },
-  BLOOMING: { label: '🌸 盛放', colors: [0xFFF176, 0xFFD54F], labelColor: '#5D4037', labelBg: [0xFFF176, 0xFFD54F], scale: 1.1 },
-  RECOVERING:{ label: '🩹 恢复', colors: [0xFFCDD2, 0xEF9A9A], labelColor: '#B71C1C', labelBg: [0xFFCDD2, 0xEF9A9A], scale: 0.9 },
-};
-const DEFAULT_STAGE = STAGE_CONFIG.GROWING;
-
 // Rarity base colors (hue for flower)
 const RARITY_COLORS: Record<string, number> = { N: 0x9E9E9E, R: 0x42A5F5, SR: 0xAB47BC, SSR: 0xFFB300, UR: 0xEF5350 };
 
@@ -175,14 +164,15 @@ export class GardenScene extends Phaser.Scene {
   private renderFlower(slot: GardenSlot) {
     const { x, y } = POT_POSITIONS[slot.position];
     const flower = slot.flower!;
-    const stageCfg = STAGE_CONFIG[flower.stage] || DEFAULT_STAGE;
     const rarityColor = RARITY_COLORS[flower.rarity] || 0x9E9E9E;
-    const container = this.add.container(x, y - 95).setDepth(15);
 
     // Stage-based height
-    const stemHeight = flower.stage === 'SEED' ? 0 : flower.stage === 'SEEDLING' ? 22 :
-      flower.stage === 'GROWING' ? 48 : flower.stage === 'MATURE' ? 65 : flower.stage === 'BLOOMING' ? 82 : 48;
+    const stemHeight = flower.stage === 'SEED' ? 0 : flower.stage === 'SEEDLING' ? 28 :
+      flower.stage === 'GROWING' ? 56 : flower.stage === 'MATURE' ? 80 : flower.stage === 'BLOOMING' ? 100 : 56;
     const crownY = -stemHeight;
+
+    // Container placed so stem base lands at soil level (pot mouth)
+    const container = this.add.container(x, y - 42).setDepth(15);
 
     // Load image or draw placeholder
     const imgKey = `flower-${flower.id}`;
@@ -195,18 +185,7 @@ export class GardenScene extends Phaser.Scene {
       this.drawPlaceholderFlower(container, flower, stemHeight, crownY, rarityColor);
     }
 
-    // Name label (small, below flower)
-    const nameText = this.add.text(0, 26, flower.name || '花', {
-      fontSize: '9px', color: '#3E2723', fontFamily: 'Nunito, Arial',
-      stroke: '#FFFFFF', strokeThickness: 2, align: 'center',
-    }).setOrigin(0.5);
-    container.add(nameText);
-
-    // Stage badge label (colored pill above pot)
-    const badge = this.drawStageBadge(0, -stemHeight - 26, flower.stage, stageCfg);
-    container.add(badge);
-
-    container.setSize(80, 140);
+    container.setSize(80, stemHeight + 20);
     container.setInteractive();
     this.flowerObjects.set(slot.position, container);
   }
@@ -269,43 +248,6 @@ export class GardenScene extends Phaser.Scene {
         container.add(glow);
       }
     }
-  }
-
-  private drawStageBadge(x: number, y: number, stage: string, cfg: typeof DEFAULT_STAGE): Phaser.GameObjects.Container {
-    const badge = this.add.container(x, y);
-    const gr = this.add.graphics();
-
-    const bgWidth = 64;
-    const bgHeight = 20;
-
-    // Pulsing glow for BLOOMING/MATURE
-    const [bg1, bg2] = cfg.labelBg;
-    gr.fillGradientStyle(bg1, bg2, bg2, bg1, 0.92);
-    gr.fillRoundedRect(-bgWidth / 2, -bgHeight / 2, bgWidth, bgHeight, 12);
-
-    // White border
-    gr.lineStyle(2, 0xFFFFFF, 0.8);
-    gr.strokeRoundedRect(-bgWidth / 2, -bgHeight / 2, bgWidth, bgHeight, 12);
-
-    badge.add(gr);
-
-    const text = this.add.text(0, 0, cfg.label, {
-      fontSize: '10px', color: cfg.labelColor, fontFamily: 'Nunito, Arial',
-      fontStyle: 'bold', align: 'center',
-    }).setOrigin(0.5);
-    badge.add(text);
-
-    // Breathing animation for BLOOMING
-    if (stage === 'BLOOMING') {
-      this.tweens.add({
-        targets: badge,
-        scaleX: 1.05, scaleY: 1.05,
-        duration: 1200, yoyo: true, repeat: -1,
-        ease: 'Sine.easeInOut',
-      });
-    }
-
-    return badge;
   }
 
   private setupBridgeListeners() {
