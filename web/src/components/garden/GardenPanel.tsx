@@ -22,17 +22,14 @@ export const GardenPanel: React.FC = () => {
   const handleGrow = async (flowerId: string) => {
     const result = await gardenApi.grow(flowerId);
     await refresh();
-    // MATURE→BLOOMING：盛放提醒
     if (result.stageChanged && result.flower.stage === 'BLOOMING') {
-      alert(
-        `🌸 花开了！
-` +
-        `「${result.flower.name || '花'}」进入盛放期
-` +
-        (result.bloomingImageApplied ? '🖼️ 盛放形态已就绪
-' : '') +
-        `🧤 可用园艺手套收获 → 存入仓库`
-      );
+      const lines = [
+        '🌸 花开了！',
+        '「' + (result.flower.name || '花') + '」进入盛放期',
+      ];
+      if (result.bloomingImageApplied) lines.push('🖼️ 盛放形态已就绪');
+      lines.push('🧤 可用园艺手套收获 → 存入仓库');
+      alert(lines.join('\n'));
     }
   };
 
@@ -48,7 +45,6 @@ export const GardenPanel: React.FC = () => {
 
   return (
     <div className="animate-fade-in">
-      {/* Seed count */}
       {seeds.length > 0 && (
         <div className="mb-3 animate-fade-in">
           <div className="flex items-center gap-1.5 mb-1.5">
