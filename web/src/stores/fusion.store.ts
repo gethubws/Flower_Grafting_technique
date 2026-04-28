@@ -10,7 +10,7 @@ interface FusionState {
   addToQueue: (flowerId: string) => void;
   removeFromQueue: (flowerId: string) => void;
   clearQueue: () => void;
-  setResult: (result: FusionCompletePayload) => void;
+  setResult: (result: FusionCompletePayload | null) => void;
   setResponse: (res: FusionResponse | null) => void;
   setFusing: (v: boolean) => void;
 }
@@ -32,7 +32,7 @@ export const useFusionStore = create<FusionState>((set) => ({
     })),
 
   clearQueue: () => set({ fusionQueue: [] }),
-  setResult: (result) => set({ resultFlower: result }),
+  setResult: (result: FusionCompletePayload | null) => set({ resultFlower: result }),
   setResponse: (res) => set({ response: res }),
   setFusing: (v) => set({ isFusing: v }),
 }));

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { bridge, BridgeEvent } from '../../bridge';
-import type { GardenSlot } from '../../types';
+import type { GardenSlot } from '../../../types';
 
 const POT_POSITIONS = [
   { x: 250, y: 330 }, { x: 512, y: 330 }, { x: 774, y: 330 },
@@ -16,7 +16,6 @@ export class GardenScene extends Phaser.Scene {
   private potZones: Map<number, Phaser.GameObjects.Zone> = new Map();
   private potGraphics: Map<number, Phaser.GameObjects.Container> = new Map();
   private activeTool: 'seed' | 'glove' | 'knife' | null = null;
-  private bgImage: Phaser.GameObjects.Image | null = null;
 
   constructor() { super({ key: 'GardenScene' }); }
 
@@ -30,7 +29,7 @@ export class GardenScene extends Phaser.Scene {
 
     // Background
     try {
-      this.bgImage = this.add.image(W / 2, H / 2, 'bg-garden')
+      this.add.image(W / 2, H / 2, 'bg-garden')
         .setDisplaySize(W, H).setAlpha(0.85).setDepth(0);
     } catch (_) {}
 
@@ -81,10 +80,8 @@ export class GardenScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true }).setDepth(20);
     this.potZones.set(idx, zone);
 
-    let hovered = false;
     zone.on('pointerover', () => {
-      hovered = true;
-      zone.setAlpha(0.06);
+      (zone as any).setAlpha(0.06);
       // Scale pot up slightly on hover
       const potG = this.potGraphics.get(idx);
       if (potG) this.tweens.add({ targets: potG, scaleX: 1.06, scaleY: 1.06, y: POT_POSITIONS[idx].y - 2, duration: 200, ease: 'Back.easeOut' });
@@ -95,8 +92,7 @@ export class GardenScene extends Phaser.Scene {
       }
     });
     zone.on('pointerout', () => {
-      hovered = false;
-      zone.setAlpha(0);
+      (zone as any).setAlpha(0);
       const potG = this.potGraphics.get(idx);
       if (potG) this.tweens.add({ targets: potG, scaleX: 1, scaleY: 1, y: POT_POSITIONS[idx].y, duration: 200, ease: 'Back.easeOut' });
       this.input.setDefaultCursor('default');

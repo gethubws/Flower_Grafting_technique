@@ -4,7 +4,6 @@ import { foundationApi } from '../../api/foundation.api';
 import { useFoundationStore } from '../../stores/foundation.store';
 import { useUserStore } from '../../stores/user.store';
 import { Button } from '../common/Button';
-import type { FoundationStatus } from '../../types';
 
 const RARITY_COLORS: Record<string, string> = {
   N: 'text-[#5a6b4c]', R: 'text-blue-600', SR: 'text-purple-600', SSR: 'text-amber-600', UR: 'text-red-700',

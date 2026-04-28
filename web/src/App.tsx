@@ -19,7 +19,6 @@ import { Toolbar } from './components/common/Toolbar';
 import { IconCoin, IconGem, IconStar } from './components/common/GameIcons';
 import { ShopPanel } from './components/shop/ShopPanel';
 import { GardenPanel } from './components/garden/GardenPanel';
-import { FusionPanel } from './components/fusion/FusionPanel';
 import { FusionResultModal } from './components/fusion/FusionResultModal';
 import { WarehousePanel } from './components/warehouse/WarehousePanel';
 import { FoundationPanel } from './components/foundation/FoundationPanel';
@@ -67,15 +66,13 @@ const App: React.FC = () => {
   const setSlots = useGardenStore((s) => s.setSlots);
   const setSeedInventory = useGardenStore((s) => s.setSeedInventory);
   const seeds = useGardenStore((s) => s.seedInventory);
-  const slots = useGardenStore((s) => s.slots);
-  const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const resultFlower = useFusionStore((s) => s.resultFlower);
   const setResult = useFusionStore((s) => s.setResult);
   const setFusionResponse = useFusionStore((s) => s.setResponse);
 
   const { loading } = useAuth();
   useSocket(user?.id || null);
-  const toast = useToast();
+  const toast = useToast().toast;
 
   const refreshGarden = useCallback(async () => {
     console.time('[refreshGarden]');
@@ -147,7 +144,7 @@ const App: React.FC = () => {
         try {
           const result = await gardenApi.harvest(payload.flowerId!);
           updateGold(result.reward?.gold || 0);
-          toast(`${result.seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, result.reward?.xp ? 'success' : 'info');
+          toast(`${(result as any).seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, result.reward?.xp ? 'success' : 'info');
           await refreshGarden();
         } catch (e: any) { toast(e.response?.data?.message || '收获失败', 'error'); }
         return;
@@ -201,7 +198,7 @@ const App: React.FC = () => {
       const result = await gardenApi.harvest(flowerId);
       console.log('[harvest] done:', result);
       updateGold(result.reward?.gold || 0);
-      toast(`${result.seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, 'success');
+      toast(`${(result as any).seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, 'success');
       await refreshGarden();
       console.log('[harvest] garden refreshed');
       setDetailPopup(null);

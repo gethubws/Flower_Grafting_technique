@@ -21,7 +21,7 @@ export const GardenPanel: React.FC = () => {
   useEffect(() => { refresh(); }, []);
 
   const handleGrow = async (flowerId: string) => {
-    const result = await gardenApi.grow(flowerId);
+    const result: any = await gardenApi.grow(flowerId);
     await refresh();
     if (result.stageChanged && result.flower.stage === 'BLOOMING') {
       const lines = [

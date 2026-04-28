@@ -4,7 +4,7 @@ import { useFusionStore } from '../stores/fusion.store';
 import { useGardenStore } from '../stores/garden.store';
 import { bridge, BridgeEvent } from '../game/bridge';
 import { gardenApi } from '../api/garden.api';
-import type { FusionCompletePayload } from '../../types';
+import type { FusionCompletePayload } from '../types';
 
 let socket: Socket | null = null;
 

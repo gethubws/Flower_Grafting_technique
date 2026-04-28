@@ -102,7 +102,7 @@ export const FlowerDetailPopup: React.FC<Props> = ({
           <div className="flex items-start gap-3 mb-3">
             <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${grad1}, ${grad2})` }}>
-              <FlowerFusion size={28} color={gradColor} />
+              <FlowerFusion size={28} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-extrabold text-sm truncate" style={{ color: '#3E2723' }}>
@@ -130,7 +130,7 @@ export const FlowerDetailPopup: React.FC<Props> = ({
             </div>
             <div className="flex-1 p-2 rounded-xl text-center" style={{ background: `${grad1}40` }}>
               <div className="flex items-center justify-center gap-0.5">
-                <IconDrop size={12} color={gradColor} />
+                <IconDrop size={12} />
                 <span className="text-base font-extrabold" style={{ color: gradColor }}>
                   {Math.max(0, 120 - ((flower as any)?.growthProgress || 0))}
                 </span>
@@ -139,7 +139,7 @@ export const FlowerDetailPopup: React.FC<Props> = ({
             </div>
             <div className="flex-1 p-2 rounded-xl text-center" style={{ background: `${grad1}40` }}>
               <div className="flex items-center justify-center gap-0.5">
-                <IconCoin size={12} color={gradColor} />
+                <IconCoin size={12} />
                 <span className="text-base font-extrabold" style={{ color: gradColor }}>
                   {(flower as any)?.sellPrice || (flower as any)?.estimatedValue || '?'}
                 </span>

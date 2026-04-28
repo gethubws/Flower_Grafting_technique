@@ -19,15 +19,6 @@ const STAGE_SIZES: Record<string, number> = {
   RECOVERING: 32,
 };
 
-const STAGE_COLORS: Record<string, number> = {
-  SEED: 0x2d5a1e,
-  SEEDLING: 0x5a8f3c,
-  GROWING: 0x4488ff,
-  MATURE: 0x8844cc,
-  BLOOMING: 0xffaa00,
-  RECOVERING: 0x663333,
-};
-
 /**
  * L1 几何占位花 — 纯 Phaser Graphics 绘制
  */
@@ -40,12 +31,11 @@ export class PlaceholderFlower {
     x: number,
     y: number,
     rarity: string,
-    stage: string,
+    _stage: string,
     name?: string | null,
   ) {
-    const crownSize = STAGE_SIZES[stage] || 32;
+    const crownSize = STAGE_SIZES[_stage] || 32;
     const crownColor = RARITY_COLORS[rarity] || 0x808080;
-    const stageColor = STAGE_COLORS[stage] || 0x808080;
 
     this.graphics = scene.add.graphics();
 
@@ -80,7 +70,7 @@ export class PlaceholderFlower {
     this.graphics.fillCircle(x, stemTop, stamenR);
 
     // Recovering overlay
-    if (stage === 'RECOVERING') {
+    if (_stage === 'RECOVERING') {
       this.graphics.fillStyle(0x000000, 0.4);
       this.graphics.fillRect(x - crownSize, y - crownSize * 2, crownSize * 2, crownSize * 3);
     }
@@ -102,15 +92,15 @@ export class PlaceholderFlower {
       align: 'center',
     });
     this.label.setOrigin(0.5, 0);
-    this.updateLabel(name, rarity, stage);
+    this.updateLabel(name, rarity, _stage);
   }
 
-  private updateLabel(name?: string | null, rarity?: string, stage?: string) {
+  private updateLabel(name?: string | null, rarity?: string, _stage?: string) {
     const shortName = name ? name.replace('种子', '').slice(0, 8) : '';
     this.label.setText(`${shortName}${rarity ? ' ' + rarity : ''}`);
   }
 
-  setPosition(x: number, y: number) {
+  setPosition(_x: number, _y: number) {
     // PlaceholderFlower is drawn relative to (x,y), re-instantiate on refresh
   }
 

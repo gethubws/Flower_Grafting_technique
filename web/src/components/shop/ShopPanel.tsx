@@ -1,6 +1,6 @@
-import { showToast } from '../common/Toast';
+import { showToast } from "../common/Toast";
 import React, { useEffect, useState } from 'react';
-import { useToast } from '../common/Toast';
+
 import { shopApi } from '../../api/shop.api';
 import { gardenApi } from '../../api/garden.api';
 import { useUserStore } from '../../stores/user.store';
@@ -16,7 +16,7 @@ export const ShopPanel: React.FC = () => {
   const [playerSeeds, setPlayerSeeds] = useState<PlayerSeedItem[]>([]);
   const [buying, setBuying] = useState<string | null>(null);
   const user = useUserStore((s) => s.user);
-  const toast = useToast();
+  
   const updateGold = useUserStore((s) => s.updateGold);
   const setSlots = useGardenStore((s) => s.setSlots);
   const setSeedInventory = useGardenStore((s) => s.setSeedInventory);

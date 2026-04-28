@@ -1,4 +1,4 @@
-import type { GardenSlot, Flower, FusionCompletePayload } from '../../types';
+import type { Flower } from '../types';
 
 type Listener = (...args: any[]) => void;
 
