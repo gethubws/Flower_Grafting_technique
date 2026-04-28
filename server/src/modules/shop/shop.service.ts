@@ -39,7 +39,7 @@ export class ShopService {
    */
   private async getSystemSeeds() {
     return this.prisma.seed.findMany({
-      where: { isActive: true, isFoundationSeed: false },
+      where: { isActive: true, seedType: 'SYSTEM' },
       orderBy: { priceGold: 'asc' },
     });
   }
@@ -131,13 +131,14 @@ export class ShopService {
       },
     });
 
-    // 如果奠基种买了，把原花的部分属性复制过来
+    // 如果奠基种买了，把原花的部分属性复制过来，并重新读取
+    let finalFlower = flower;
     if (seed.isFoundationSeed && seed.foundationFlowerId) {
       const foundationFlower = await this.prisma.flower.findUnique({
         where: { id: seed.foundationFlowerId },
       });
       if (foundationFlower) {
-        await this.prisma.flower.update({
+        finalFlower = await this.prisma.flower.update({
           where: { id: flower.id },
           data: {
             rarity: foundationFlower.rarity,
@@ -149,7 +150,7 @@ export class ShopService {
     }
 
     return {
-      flower,
+      flower: finalFlower,
       cost: price,
       remainingGold: user.gold - price,
     };
