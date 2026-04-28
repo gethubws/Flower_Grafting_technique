@@ -15,38 +15,42 @@ import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
 import { AtomModule } from './modules/atom/atom.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { FoundationModule } from './modules/foundation/foundation.module';
+import { DebugModule } from './modules/debug/debug.module';
+
+// 构建 imports 数组，DEBUG_MODE 时加载调试模块
+const imports: any[] = [
+  ConfigModule.forRoot({ isGlobal: true }),
+
+  JwtModule.register({
+    global: true,
+    secret: process.env.JWT_SECRET || 'flowerlang_jwt_secret_key_2026',
+    signOptions: {
+      expiresIn: process.env.JWT_EXPIRATION || '7d',
+    },
+  }),
+
+  PrismaModule,
+  RedisModule,
+  MinioModule,
+
+  AtomModule,
+
+  UserModule,
+  ShopModule,
+  GardenModule,
+  FusionModule,
+  AiGatewayModule,
+  WarehouseModule,
+  FoundationModule,
+];
+
+if (process.env.DEBUG_MODE === 'true') {
+  imports.push(DebugModule);
+  console.log('🛠️  DEBUG MODE enabled');
+}
 
 @Module({
-  imports: [
-    // 全局配置（读取 .env）
-    ConfigModule.forRoot({ isGlobal: true }),
-
-    // 全局 JWT 模块（User/Auth 等模块共用）
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET || 'flowerlang_jwt_secret_key_2026',
-      signOptions: {
-        expiresIn: process.env.JWT_EXPIRATION || '7d',
-      },
-    }),
-
-    // 基础设施
-    PrismaModule,
-    RedisModule,
-    MinioModule,
-
-    // 核心系统
-    AtomModule,
-
-    // 业务模块
-    UserModule,
-    ShopModule,
-    GardenModule,
-    FusionModule,
-    AiGatewayModule,
-    WarehouseModule,
-    FoundationModule,
-  ],
+  imports,
   controllers: [AppController],
   providers: [
     AppService,

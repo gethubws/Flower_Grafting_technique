@@ -22,6 +22,7 @@ export class UserController {
       diamond: user.diamond,
       xp: user.xp,
       level: user.level,
+      title: user.title ?? undefined,
     };
   }
 }

@@ -5,4 +5,5 @@ export class UserProfileDto {
   diamond: number;
   xp: number;
   level: number;
+  title?: string;
 }
