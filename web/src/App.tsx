@@ -346,7 +346,7 @@ const App: React.FC = () => {
       <FusionResultModal />
 
       {/* ==================== Bottom: Seed/Glove Hints + Toolbar ==================== */}
-      <div className="absolute bottom-0 left-0 right-0 z-20">
+      <div className="absolute left-0 right-0 z-[110]" style={{ bottom: 88 }}>
         {activeTool === 'seed' && (
           <div className="text-center pb-3 animate-fade-in">
             <div className="inline-flex items-center gap-2 flex-wrap justify-center p-2 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
