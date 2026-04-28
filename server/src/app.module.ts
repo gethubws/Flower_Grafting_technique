@@ -13,6 +13,7 @@ import { GardenModule } from './modules/garden/garden.module';
 import { FusionModule } from './modules/fusion/fusion.module';
 import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
 import { AtomModule } from './modules/atom/atom.module';
+import { WarehouseModule } from './modules/warehouse/warehouse.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AtomModule } from './modules/atom/atom.module';
     GardenModule,
     FusionModule,
     AiGatewayModule,
+    WarehouseModule,
   ],
   controllers: [AppController],
   providers: [
