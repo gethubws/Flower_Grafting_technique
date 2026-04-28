@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useEffect } from 'react';
 import { gardenApi } from '../../api/garden.api';
 import { useGardenStore } from '../../stores/garden.store';
@@ -29,7 +30,7 @@ export const GardenPanel: React.FC = () => {
       ];
       if (result.bloomingImageApplied) lines.push('🖼️ 盛放形态已就绪');
       lines.push('🧤 可用园艺手套收获 → 存入仓库');
-      alert(lines.join('\n'));
+      showToast(lines.join('\n'))
     }
   };
 

@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useEffect, useState } from 'react';
 import { warehouseApi } from '../../api/warehouse.api';
 import { useWarehouseStore } from '../../stores/warehouse.store';
@@ -28,7 +29,7 @@ export const WarehousePanel: React.FC = () => {
       updateGold(result.goldReceived);
       removeFlower(flower.id);
     } catch (e: any) {
-      alert(e.response?.data?.message || '出售失败');
+      showToast(e.response?.data?.message || '出售失败', 'error')
     }
     setSelling(null);
   };
@@ -37,9 +38,9 @@ export const WarehousePanel: React.FC = () => {
     setDesignating(flowerId);
     try {
       await warehouseApi.designateStability(flowerId);
-      alert('✅ 已指定为性状稳定工程母株\n下次融合时传入 stabilityTargetId 即可追踪进度');
+      showToast('✅ 已指定为性状稳定工程母株\n下次融合时传入 stabilityTargetId 即可追踪进度', 'success')
     } catch (e: any) {
-      alert(e.response?.data?.message || '指定失败');
+      showToast(e.response?.data?.message || '指定失败', 'error')
     }
     setDesignating(null);
   };

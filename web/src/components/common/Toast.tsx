@@ -1,4 +1,4 @@
-import React, { useState, useCallback, createContext, useContext } from 'react';
+import React, { useState, useCallback, createContext, useContext, useEffect } from 'react';
 
 type ToastType = 'success' | 'error' | 'info' | 'gold';
 
@@ -30,6 +30,12 @@ const ToastContext = createContext<ToastCtx>({ toast: () => {} });
 export const useToast = () => useContext(ToastContext);
 
 let _id = 0;
+// Global toast emitter (accessible without hook)
+type ToastListener = (msg: string, type: ToastType) => void;
+let _globalListener: ToastListener | null = null;
+export const showToast = (msg: string, type: ToastType = 'info') => {
+  if (_globalListener) _globalListener(msg, type);
+};
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -42,6 +48,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 350);
     }, 2500);
   }, []);
+
+  useEffect(() => {
+    _globalListener = addToast;
+    return () => { _globalListener = null; };
+  }, [addToast]);
 
   return (
     <ToastContext.Provider value={{ toast: addToast }}>

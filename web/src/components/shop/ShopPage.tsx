@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useEffect, useState } from 'react';
 import { shopApi } from '../../api/shop.api';
 import { gardenApi } from '../../api/garden.api';
@@ -50,7 +51,7 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
       const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
       setSlots(garden); setSeedInventory(inv);
       bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
-    } catch (e: any) { alert(e.response?.data?.message || '购买失败'); }
+    } catch (e: any) { showToast(e.response?.data?.message || '购买失败', 'error') }
     setBuying(null);
   };
 

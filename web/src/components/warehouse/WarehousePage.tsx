@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useEffect, useState } from 'react';
 import { warehouseApi } from '../../api/warehouse.api';
 import { useUserStore } from '../../stores/user.store';
@@ -25,7 +26,7 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
       const r = await warehouseApi.sell(f.id);
       updateGold(r.goldReceived);
       setFlowers((prev) => prev.filter((x) => x.id !== f.id));
-    } catch (e: any) { alert(e.response?.data?.message || '出售失败'); }
+    } catch (e: any) { showToast(e.response?.data?.message || '出售失败', 'error') }
     setSelling(null);
   };
 
@@ -157,8 +158,8 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
                     {f.name?.includes('×') && (
                       <button onClick={async (e) => {
                         e.stopPropagation();
-                        try { await warehouseApi.designateStability(f.id); alert('✅ 已指定为稳定工程母株'); }
-                        catch (e: any) { alert(e.response?.data?.message || '指定失败'); }
+                        try { await warehouseApi.designateStability(f.id); showToast('✅ 已指定为稳定工程母株', 'success') }
+                        catch (e: any) { showToast(e.response?.data?.message || '指定失败', 'error') }
                       }}
                       className="btn btn-secondary px-3 py-2 text-xs" title="指定为母株">🧬</button>
                     )}

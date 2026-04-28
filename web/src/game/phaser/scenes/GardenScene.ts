@@ -142,6 +142,7 @@ export class GardenScene extends Phaser.Scene {
   }
 
   private refreshSlots(slots: GardenSlot[]) {
+    console.log('[GardenScene] refreshSlots called, slots with flowers:', slots.filter(s => s.flower).length);
     this.slots = slots;
     const urlsToLoad: { key: string; url: string }[] = [];
     for (const slot of slots) {

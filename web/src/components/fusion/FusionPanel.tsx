@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useState } from 'react';
 import { fusionApi } from '../../api/fusion.api';
 import { gardenApi } from '../../api/garden.api';
@@ -54,7 +55,7 @@ export const FusionPanel: React.FC = () => {
       setSeedInventory(inv);
       bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
     } catch (e: any) {
-      alert(e.response?.data?.message || '融合失败');
+      showToast(e.response?.data?.message || '融合失败', 'error')
     }
     setFusing(false);
   };

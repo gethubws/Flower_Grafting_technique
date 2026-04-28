@@ -78,7 +78,9 @@ const App: React.FC = () => {
   const toast = useToast();
 
   const refreshGarden = useCallback(async () => {
+    console.time('[refreshGarden]');
     const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
+    console.timeEnd('[refreshGarden]');
     setSlots(garden);
     setSeedInventory(inv);
     bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
@@ -195,12 +197,15 @@ const App: React.FC = () => {
   };
   const handleHarvestFromPopup = async (flowerId: string) => {
     try {
+      console.log('[harvest] start:', flowerId);
       const result = await gardenApi.harvest(flowerId);
+      console.log('[harvest] done:', result);
       updateGold(result.reward?.gold || 0);
       toast(`${result.seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, 'success');
       await refreshGarden();
+      console.log('[harvest] garden refreshed');
       setDetailPopup(null);
-    } catch (e: any) { toast(e.response?.data?.message || '收获失败', 'error'); }
+    } catch (e: any) { console.error('[harvest] error:', e); toast(e.response?.data?.message || '收获失败', 'error'); }
   };
 
   useEffect(() => {

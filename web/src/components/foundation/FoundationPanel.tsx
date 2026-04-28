@@ -1,3 +1,4 @@
+import { showToast } from '../common/Toast';
 import React, { useEffect, useState } from 'react';
 import { foundationApi } from '../../api/foundation.api';
 import { useFoundationStore } from '../../stores/foundation.store';
@@ -23,9 +24,9 @@ export const FoundationPanel: React.FC = () => {
     setClaiming(flowerId);
     try {
       const result = await foundationApi.claimSeed(flowerId);
-      alert(`🌱 已领取奠基种！\n「${result.name}」(${result.rarity}级, ${result.atomCount}因子)\n种子已加入背包`);
+      showToast(`🌱 已领取奠基种！\n「${result.name}」(${result.rarity}级, ${result.atomCount}因子)\n种子已加入背包`, 'success')
     } catch (e: any) {
-      alert(e.response?.data?.message || '领取失败');
+      showToast(e.response?.data?.message || '领取失败', 'error')
     }
     setClaiming(null);
   };
@@ -34,10 +35,10 @@ export const FoundationPanel: React.FC = () => {
     setListing(flowerId);
     try {
       const result = await foundationApi.listShop(flowerId, price);
-      alert(`🛒 已上架！\n「${result.name}」售价 ${result.price}g`);
+      showToast(`🛒 已上架！\n「${result.name}」售价 ${result.price}g`, 'success')
       foundationApi.getStatus().then(setMothers);
     } catch (e: any) {
-      alert(e.response?.data?.message || '上架失败');
+      showToast(e.response?.data?.message || '上架失败', 'error')
     }
     setListing(null);
   };
