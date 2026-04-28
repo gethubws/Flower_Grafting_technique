@@ -103,20 +103,26 @@ export class GardenScene extends Phaser.Scene {
     });
     zone.on('pointerdown', () => {
       const slot = this.slots.find((s: GardenSlot) => s.position === idx);
-      // Emit pot click (for tool actions)
       bridge.emit(BridgeEvent.POT_CLICKED, {
         position: idx,
         flowerId: slot?.flower?.id || null,
         flower: slot?.flower || null,
       });
-      // Also emit detail request (for React popup) with screen position
+    });
+
+    // Hover to show tooltip
+    zone.on('pointerover', () => {
+      const slot = this.slots.find((s: GardenSlot) => s.position === idx);
       const canvas = this.sys.game.canvas.getBoundingClientRect();
-      bridge.emit(BridgeEvent.POT_DETAIL_TOGGLE, {
+      bridge.emit(BridgeEvent.POT_HOVER_ENTER, {
         position: idx,
         flower: slot?.flower || null,
         screenX: canvas.left + p.x,
-        screenY: canvas.top + p.y - 30,
+        screenY: canvas.top + p.y,
       });
+    });
+    zone.on('pointerout', () => {
+      bridge.emit(BridgeEvent.POT_HOVER_LEAVE, { position: idx });
     });
   }
 

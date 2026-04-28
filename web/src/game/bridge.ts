@@ -25,7 +25,9 @@ export const BridgeEvent = {
   // Phaser → React
   SLOT_CLICKED: 'slotClicked',
   POT_CLICKED: 'potClicked',
-  POT_DETAIL_TOGGLE: 'potDetailToggle', // flower detail popup
+  POT_DETAIL_TOGGLE: 'potDetailToggle', // flower detail popup (click)
+  POT_HOVER_ENTER: 'potHoverEnter',      // hover to show tooltip
+  POT_HOVER_LEAVE: 'potHoverLeave',      // hover leave to hide tooltip
   POT_POSITION: 'potPosition',          // position update for popup placement
 
   // React → Phaser

@@ -12,6 +12,7 @@ import { fusionApi } from './api/fusion.api';
 import type { PotClickedPayload, PotDetailTogglePayload } from './game/bridge';
 import type { GroupedSeedItem, SoilType, FusionResponse } from './types';
 import { FlowerDetailPopup } from './components/garden/FlowerDetailPopup';
+import { ToastProvider, useToast } from './components/common/Toast';
 
 import { RegisterPanel } from './components/user/RegisterPanel';
 import { Toolbar } from './components/common/Toolbar';
@@ -74,6 +75,7 @@ const App: React.FC = () => {
 
   const { loading } = useAuth();
   useSocket(user?.id || null);
+  const toast = useToast();
 
   const refreshGarden = useCallback(async () => {
     const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
@@ -97,17 +99,24 @@ const App: React.FC = () => {
   // Sync tool to Phaser
   useEffect(() => { bridge.emit(BridgeEvent.TOOL_ACTIVATED, { tool: activeTool }); }, [activeTool]);
 
-  // Detail popup listener
+  // Hover tooltip for pots
   useEffect(() => {
-    const handler = (payload: PotDetailTogglePayload) => {
+    const enter = (payload: PotDetailTogglePayload) => {
+      setDetailPopup(payload);
+    };
+    const leave = () => {
       setDetailPopup((prev) => {
-        // Toggle: clicking same pot closes it
-        if (prev?.position === payload.position) return null;
-        return payload;
+        // Delay hide to allow mouse to reach popup buttons
+        setTimeout(() => setDetailPopup(null), 600);
+        return prev; // don't change immediately
       });
     };
-    bridge.on(BridgeEvent.POT_DETAIL_TOGGLE, handler);
-    return () => bridge.off(BridgeEvent.POT_DETAIL_TOGGLE, handler);
+    bridge.on(BridgeEvent.POT_HOVER_ENTER, enter);
+    bridge.on(BridgeEvent.POT_HOVER_LEAVE, leave);
+    return () => {
+      bridge.off(BridgeEvent.POT_HOVER_ENTER, enter);
+      bridge.off(BridgeEvent.POT_HOVER_LEAVE, leave);
+    };
   }, []);
 
   // Reset fusion state when knife tool changes
@@ -121,35 +130,35 @@ const App: React.FC = () => {
     const handler = async (payload: PotClickedPayload) => {
       if (activeTool === 'seed') {
         const seedToPlant = pickedSeed || (seeds.length > 0 ? seeds[0] : null);
-        if (!seedToPlant) return alert('没有种子可以种植');
-        if (payload.flower) return alert('这个花盆已经种了花');
+        if (!seedToPlant) return toast('没有种子可以种植', 'error');
+        if (payload.flower) return toast('这个花盆已经种了花', 'error');
         try {
           await gardenApi.plant(seedToPlant.sampleId, payload.position);
           await refreshGarden();
           setPickedSeed(null);
-        } catch (e: any) { alert(e.response?.data?.message || '种植失败'); }
+        } catch (e: any) { toast(e.response?.data?.message || '种植失败', 'error'); }
         return;
       }
       if (activeTool === 'glove') {
         if (!payload.flower) return;
-        if (payload.flower.stage !== 'BLOOMING') return alert('只有盛放期的花才能收获');
+        if (payload.flower.stage !== 'BLOOMING') return toast('只有盛放期的花才能收获', 'error');
         try {
           const result = await gardenApi.harvest(payload.flowerId!);
           updateGold(result.reward?.gold || 0);
-          alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp${result.seedDropped ? '  |  🌰 获得种子' : ''}\n📦 花朵已存入仓库，可出售换金币`);
+          toast(`${result.seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, result.reward?.xp ? 'success' : 'info');
           await refreshGarden();
-        } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
+        } catch (e: any) { toast(e.response?.data?.message || '收获失败', 'error'); }
         return;
       }
       if (activeTool === 'knife') {
         if (!payload.flower) return;
         const stage = payload.flower.stage;
-        if (stage !== 'GROWING' && stage !== 'MATURE') return alert('只能选择生长期(🌿成长/🌼成熟)的花来嫁接');
+        if (stage !== 'GROWING' && stage !== 'MATURE') return toast('只能选择生长期(🌿成长/🌼成熟)的花来嫁接', 'error');
         if (fusionStep === 'selectA') {
           setFusionParentA({ id: payload.flowerId!, name: payload.flower.name || '花', stage });
           setFusionStep('selectB');
         } else if (fusionStep === 'selectB') {
-          if (payload.flowerId === fusionParentA?.id) return alert('不能选择同一朵花');
+          if (payload.flowerId === fusionParentA?.id) return toast('不能选择同一朵花', 'error');
           setFusionParentB({ id: payload.flowerId!, name: payload.flower.name || '花', stage });
           setFusionStep('soil');
           setShowFusionPanel(true);
@@ -170,10 +179,10 @@ const App: React.FC = () => {
       if (res.success && res.reward) {
         updateGold(res.reward.gold);
         setResult({ flowerId: res.flowerId || '', rarity: res.rarity || 'N', atoms: res.atoms || [], imageUrl: res.imageUrl || null, reward: res.reward, isFirstTime: res.isFirstTime || false });
-      } else { alert(`💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n亲本「${fusionParentA.name}」已牺牲`); }
+      } else { toast(`💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n亲本「${fusionParentA.name}」已牺牲`, 'error'); }
       setFusionParentA(null); setFusionParentB(null); setFusionStep(null); setShowFusionPanel(false); setActiveTool(null);
       await refreshGarden();
-    } catch (e: any) { alert(e.response?.data?.message || '融合失败'); }
+    } catch (e: any) { toast(e.response?.data?.message || '融合失败', 'error'); }
     setFusing(false);
   };
 
@@ -182,16 +191,16 @@ const App: React.FC = () => {
     try {
       await gardenApi.grow(flowerId);
       await refreshGarden();
-    } catch (e: any) { alert(e.response?.data?.message || '浇水失败'); }
+    } catch (e: any) { toast(e.response?.data?.message || '浇水失败', 'error'); }
   };
   const handleHarvestFromPopup = async (flowerId: string) => {
     try {
       const result = await gardenApi.harvest(flowerId);
       updateGold(result.reward?.gold || 0);
-      alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp${result.seedDropped ? ' | 🌰 获得种子' : ''}\n📦 花朵已存入仓库`);
+      toast(`${result.seedDropped ? '🌰 获得种子  |  ' : ''}📦 ${result.flowerName} 已存入仓库`, 'success');
       await refreshGarden();
       setDetailPopup(null);
-    } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
+    } catch (e: any) { toast(e.response?.data?.message || '收获失败', 'error'); }
   };
 
   useEffect(() => {
@@ -204,24 +213,29 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
+      <ToastProvider>
       <div className="flex flex-col items-center justify-center w-full h-full gap-4" style={{ background: 'linear-gradient(180deg, #f5f9f3, #FAF8F5, #fdf5eb)' }}>
         <div className="text-4xl animate-float">🌺</div>
         <p className="text-[#8D6E63] text-sm font-medium">加载中...</p>
       </div>
+      </ToastProvider>
     );
   }
 
   if (!isLoggedIn) {
     return (
+      <ToastProvider>
       <div className="w-full h-full" style={{ background: 'linear-gradient(180deg, #f5f9f3, #FAF8F5, #fdf5eb)' }}>
         <RegisterPanel />
       </div>
+      </ToastProvider>
     );
   }
 
   const totalSeeds = seeds.reduce((s, i) => s + i.count, 0);
 
   return (
+    <ToastProvider>
     <div className="relative w-full h-full overflow-hidden">
       {/* ==================== Phaser Canvas ==================== */}
       <div id="game-container" className="absolute inset-0" />
@@ -408,6 +422,7 @@ const App: React.FC = () => {
       {currentPage === 'warehouse' && (<WarehousePage onClose={() => setCurrentPage('garden')} />)}
       {currentPage === 'shop' && (<ShopPage onClose={() => setCurrentPage('garden')} />)}
     </div>
+    </ToastProvider>
   );
 };
 

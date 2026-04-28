@@ -68,6 +68,9 @@ body {
   from { opacity: 0; transform: translateX(40px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-16px) scale(0.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toast-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-12px) scale(0.9); } }
+
 @keyframes breathe {
   0%, 100% { box-shadow: 0 0 20px rgba(124, 179, 66, 0.2); }
   50%      { box-shadow: 0 0 40px rgba(124, 179, 66, 0.5); }

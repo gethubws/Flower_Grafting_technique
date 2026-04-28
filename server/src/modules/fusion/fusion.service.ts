@@ -93,6 +93,12 @@ export class FusionService {
     const result = await this.prisma.$transaction(async (tx) => {
       const now = new Date();
 
+      // 记录亲本B所在槽位（在释放前查）
+      const parentBSlot = await tx.gardenSlot.findFirst({
+        where: { flowerId: parents.b.id },
+        select: { id: true, position: true },
+      });
+
       // 标记亲本消耗
       await tx.flower.update({ where: { id: parents.a.id }, data: { consumedAt: now } });
       await tx.flower.update({ where: { id: parents.b.id }, data: { consumedAt: now } });
@@ -125,14 +131,17 @@ export class FusionService {
         },
       });
 
-      // 自动种植到第一个空槽位
-      const emptySlot = await tx.gardenSlot.findFirst({
-        where: { userId, flowerId: null },
-        orderBy: { position: 'asc' },
-      });
-      if (emptySlot) {
+      // 自动种植到亲本B原来的槽位（嫁接结果应该留在嫁接对象那里）
+      // 如果B的槽位不可用，fallback到第一个空槽
+      const targetSlotId = parentBSlot?.id
+        ?? (await tx.gardenSlot.findFirst({
+          where: { userId, flowerId: null },
+          orderBy: { position: 'asc' },
+        }))?.id;
+
+      if (targetSlotId) {
         await tx.gardenSlot.update({
-          where: { id: emptySlot.id },
+          where: { id: targetSlotId },
           data: { flowerId: flower.id },
         });
       }
