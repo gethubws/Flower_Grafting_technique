@@ -182,8 +182,8 @@ export class GardenService {
           flower.parentAId ? tx.flower.findUnique({ where: { id: flower.parentAId } }) : null,
           flower.parentBId ? tx.flower.findUnique({ where: { id: flower.parentBId } }) : null,
         ]);
-        const baseA = parentA?.sellPrice || parentA ? 100 : 0;
-        const baseB = parentB?.sellPrice || parentB ? 100 : 0;
+        const baseA = parentA?.sellPrice ?? 100;
+        const baseB = parentB?.sellPrice ?? 100;
         sellPrice = Math.floor(multiplier * (baseA + baseB));
       }
 
