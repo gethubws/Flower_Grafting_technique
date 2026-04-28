@@ -144,27 +144,37 @@ export class GardenService {
         data: { xp: { increment: xpReward } },
       });
 
-      // 2. 必掉种子（名加4位hash防重名）
-      const seedSuffix = flower.id.slice(-4);
-      await tx.seed.create({
+      // 2. 必掉种子（作为 SEED 阶段 Flower 存入库，供 inventory 查询）
+      const droppedSeed = await tx.flower.create({
         data: {
-          name: `${flower.name || `${rarity}花种子`}_${seedSuffix}`,
-          description: `从「${flower.name}」收获的种子`,
-          emoji: '🌱',
-          priceGold: 0,
-          atomLibrary: flower.atoms as any,
-          isActive: true,
-          seedType: flower.isShopSeed ? 'INHERIT' : 'FUSION_DROP',
-          parentFlowerId: flower.id,
+          ownerId: userId,
+          name: flower.name || `${rarity}花`,
+          stage: 'SEED',
+          progress: 0,
+          rarity: flower.rarity,
+          atoms: flower.atoms as any,
+          factorScore: flower.factorScore,
+          isShopSeed: false,
         },
       });
 
       // 3. 预计算售价（出售时用）
       let sellPrice = 0;
       if (flower.isShopSeed) {
-        // 基础花：种子原价 × 1.5
-        const seed = await tx.seed.findFirst({ where: { name: flower.name?.replace('种子', '') || '' } });
-        sellPrice = Math.floor((seed?.priceGold || 100) * 1.5);
+        // 基础花：查找对应的系统种子原价 × 1.5
+        // 原花的种子名如 "玫瑰"，对应系统种子名为 "玫瑰种子"
+        const systemSeed = await tx.seed.findFirst({
+          where: { seedType: 'SYSTEM', isActive: true },
+        });
+        // 尝试匹配名称
+        const matchingSeed = await tx.seed.findFirst({
+          where: {
+            seedType: 'SYSTEM',
+            isActive: true,
+            name: { contains: flower.name || '' },
+          },
+        });
+        sellPrice = Math.floor((matchingSeed?.priceGold || systemSeed?.priceGold || 100) * 1.5);
       } else {
         // 融合花: 稀有度乘区 × (亲本A售价 + 亲本B售价)
         const multiplier = RARITY_SELL_MULTIPLIER[rarity];
