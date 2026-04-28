@@ -81,23 +81,23 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-[#faf7f2] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#faf7f2]/95 backdrop-blur-md border-b border-[#c5d5b5]/30 px-4 py-3">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <button onClick={onClose} className="flex items-center gap-1.5 text-[#5a6b4c] hover:text-[#2e3d23] text-sm transition-colors">
-            <span className="text-lg">←</span>
-            <span>返回花园</span>
+      <div className="sticky top-0 z-10 page-header px-4 py-3">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <button onClick={onClose} className="flex items-center gap-2 text-[#5a6b4c] hover:text-[#2e3d23] text-sm transition-all hover:gap-3">
+            <span className="text-base">←</span>
+            <span className="font-medium">返回花园</span>
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🛒</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shadow-inner">🛒</div>
             <h1 className="text-lg font-bold text-[#2e3d23]">种子商店</h1>
           </div>
           <div className="w-16" />
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Tabs */}
-        <div className="flex gap-1 mb-4 bg-[#ffffff] rounded-xl p-1 max-w-xs">
+        <div className="flex gap-2 mb-6 bg-[#ffffff] rounded-2xl p-1.5 max-w-sm shadow-sm border border-[#dce8d0]">
           {(['system', 'player'] as const).map((t) => (
             <button
               key={t}
@@ -132,9 +132,10 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
         {tab === 'system' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {systemSeeds.length === 0 ? (
-              <div className="col-span-full text-center py-20">
-                <div className="text-6xl mb-4">🌱</div>
-                <p className="text-[#9aac8a]">暂无系统种子</p>
+              <div className="col-span-full empty-state">
+                <div className="empty-state-icon">🌱</div>
+                <div className="text-[#2e3d23] font-bold text-lg mb-2">暂无系统种子</div>
+                <p className="empty-state-text">商店正在进货中，请稍后再来</p>
               </div>
             ) : (
               systemSeeds.map((seed) => {
@@ -170,9 +171,10 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
         {tab === 'player' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedPlayer.length === 0 ? (
-              <div className="col-span-full text-center py-20">
-                <div className="text-6xl mb-4">⭐</div>
-                <p className="text-[#9aac8a]">暂无玩家上架的奠基种</p>
+              <div className="col-span-full empty-state">
+                <div className="empty-state-icon">⭐</div>
+                <div className="text-[#2e3d23] font-bold text-lg mb-2">暂无玩家奠基种</div>
+                <p className="empty-state-text">完成10次性状稳定培育后可上架自己的奠基种</p>
               </div>
             ) : (
               sortedPlayer.map((seed) => {
