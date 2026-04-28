@@ -182,7 +182,7 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
                     {/* Image */}
                     <div className="h-36 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
                       {seed.imageUrl ? (
-                        <img src={seed.imageUrl} alt={seed.name} className="w-full h-full object-cover" />
+                        <img src={seed.imageUrl} alt={seed.name} className="w-full h-full object-contain" />
                       ) : (
                         <span className="text-6xl">{seed.emoji || '⭐'}</span>
                       )}

@@ -108,7 +108,7 @@ export const WarehousePage: React.FC<Props> = ({ onClose }) => {
               {/* Image area */}
               <div className="h-48 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
                 {f.imageUrl ? (
-                  <img src={f.imageUrl} alt={f.name || '花'} className="w-full h-full object-cover" />
+                  <img src={f.imageUrl} alt={f.name || '花'} className="w-full h-full object-contain" />
                 ) : (
                   <span className="text-6xl opacity-30">{f.isShopSeed ? '🌱' : '🌸'}</span>
                 )}

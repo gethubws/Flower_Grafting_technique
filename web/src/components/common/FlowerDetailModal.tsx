@@ -65,7 +65,7 @@ export const FlowerDetailModal: React.FC<Props> = ({
       {/* Image */}
       <div className="h-64 bg-[#0a0a1a] flex items-center justify-center overflow-hidden">
         {imageUrl ? (
-          <img src={imageUrl} alt={name || '花'} className="w-full h-full object-cover" />
+          <img src={imageUrl} alt={name || '花'} className="w-full h-full object-contain" />
         ) : (
           <span className="text-8xl opacity-20">{emoji || '🌸'}</span>
         )}
