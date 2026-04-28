@@ -14,6 +14,7 @@ import type { GroupedSeedItem, SoilType, FusionResponse } from './types';
 
 import { RegisterPanel } from './components/user/RegisterPanel';
 import { Toolbar } from './components/common/Toolbar';
+import { IconCoin, IconGem, IconStar } from './components/common/GameIcons';
 import { ShopPanel } from './components/shop/ShopPanel';
 import { GardenPanel } from './components/garden/GardenPanel';
 import { FusionPanel } from './components/fusion/FusionPanel';
@@ -90,26 +91,17 @@ const App: React.FC = () => {
   }, [isLoggedIn, loading]);
 
   // Sync tool to Phaser
-  useEffect(() => {
-    bridge.emit(BridgeEvent.TOOL_ACTIVATED, { tool: activeTool });
-  }, [activeTool]);
+  useEffect(() => { bridge.emit(BridgeEvent.TOOL_ACTIVATED, { tool: activeTool }); }, [activeTool]);
 
   // Reset fusion state when knife tool changes
   useEffect(() => {
-    if (activeTool !== 'knife') {
-      setFusionStep(null);
-      setFusionParentA(null);
-      setFusionParentB(null);
-      setShowFusionPanel(false);
-    } else {
-      setFusionStep('selectA');
-    }
+    if (activeTool !== 'knife') { setFusionStep(null); setFusionParentA(null); setFusionParentB(null); setShowFusionPanel(false); }
+    else { setFusionStep('selectA'); }
   }, [activeTool]);
 
   // Handle pot clicks
   useEffect(() => {
     const handler = async (payload: PotClickedPayload) => {
-      // --- Seed planting ---
       if (activeTool === 'seed') {
         const seedToPlant = pickedSeed || (seeds.length > 0 ? seeds[0] : null);
         if (!seedToPlant) return alert('没有种子可以种植');
@@ -118,55 +110,30 @@ const App: React.FC = () => {
           await gardenApi.plant(seedToPlant.sampleId, payload.position);
           await refreshGarden();
           setPickedSeed(null);
-        } catch (e: any) {
-          alert(e.response?.data?.message || '种植失败');
-        }
+        } catch (e: any) { alert(e.response?.data?.message || '种植失败'); }
         return;
       }
-
-      // --- Glove harvest ---
       if (activeTool === 'glove') {
         if (!payload.flower) return;
         if (payload.flower.stage !== 'BLOOMING') return alert('只有盛放期的花才能收获');
         try {
           const result = await gardenApi.harvest(payload.flowerId!);
           updateGold(result.reward?.gold || 0);
-          alert(
-            `🧤 收获成功！\n${result.flowerName}\n` +
-            `⭐ +${result.reward?.xp || 0}xp  |  🌰 获得种子\n` +
-            `📦 花朵已存入仓库，可出售换金币`
-          );
+          alert(`🧤 收获成功！\n${result.flowerName}\n⭐ +${result.reward?.xp || 0}xp  |  🌰 获得种子\n📦 花朵已存入仓库，可出售换金币`);
           await refreshGarden();
-        } catch (e: any) {
-          alert(e.response?.data?.message || '收获失败');
-        }
+        } catch (e: any) { alert(e.response?.data?.message || '收获失败'); }
         return;
       }
-
-      // --- Knife fusion ---
       if (activeTool === 'knife') {
         if (!payload.flower) return;
         const stage = payload.flower.stage;
-        if (stage !== 'GROWING' && stage !== 'MATURE') {
-          return alert('只能选择生长期(🌿成长/🌼成熟)的花来嫁接');
-        }
-
+        if (stage !== 'GROWING' && stage !== 'MATURE') return alert('只能选择生长期(🌿成长/🌼成熟)的花来嫁接');
         if (fusionStep === 'selectA') {
-          setFusionParentA({
-            id: payload.flowerId!,
-            name: payload.flower.name || '花',
-            stage,
-          });
+          setFusionParentA({ id: payload.flowerId!, name: payload.flower.name || '花', stage });
           setFusionStep('selectB');
         } else if (fusionStep === 'selectB') {
-          if (payload.flowerId === fusionParentA?.id) {
-            return alert('不能选择同一朵花');
-          }
-          setFusionParentB({
-            id: payload.flowerId!,
-            name: payload.flower.name || '花',
-            stage,
-          });
+          if (payload.flowerId === fusionParentA?.id) return alert('不能选择同一朵花');
+          setFusionParentB({ id: payload.flowerId!, name: payload.flower.name || '花', stage });
           setFusionStep('soil');
           setShowFusionPanel(true);
         }
@@ -177,78 +144,42 @@ const App: React.FC = () => {
     return () => { bridge.off(BridgeEvent.POT_CLICKED, handler); };
   }, [activeTool, fusionStep, fusionParentA, pickedSeed, seeds]);
 
-  // Execute fusion
   const handleExecuteFusion = async () => {
     if (!fusionParentA || !fusionParentB) return;
     setFusing(true);
     try {
-      const res = await fusionApi.fuse({
-        parentAId: fusionParentA.id,
-        parentBId: fusionParentB.id,
-        soil: fusionSoil,
-      });
-
-      // Store full response for gene detail modal
+      const res = await fusionApi.fuse({ parentAId: fusionParentA.id, parentBId: fusionParentB.id, soil: fusionSoil });
       setFusionResponse(res as FusionResponse);
-
       if (res.success && res.reward) {
         updateGold(res.reward.gold);
-        setResult({
-          flowerId: res.flowerId || '',
-          rarity: res.rarity || 'N',
-          atoms: res.atoms || [],
-          imageUrl: res.imageUrl || null,
-          reward: res.reward,
-          isFirstTime: res.isFirstTime || false,
-        });
-
-      } else {
-        alert(
-          `💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n` +
-          `亲本「${fusionParentA.name}」已牺牲`
-        );
-      }
-
-      // Reset
-      setFusionParentA(null);
-      setFusionParentB(null);
-      setFusionStep(null);
-      setShowFusionPanel(false);
-      setActiveTool(null);
+        setResult({ flowerId: res.flowerId || '', rarity: res.rarity || 'N', atoms: res.atoms || [], imageUrl: res.imageUrl || null, reward: res.reward, isFirstTime: res.isFirstTime || false });
+      } else { alert(`💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n亲本「${fusionParentA.name}」已牺牲`); }
+      setFusionParentA(null); setFusionParentB(null); setFusionStep(null); setShowFusionPanel(false); setActiveTool(null);
       await refreshGarden();
-    } catch (e: any) {
-      alert(e.response?.data?.message || '融合失败');
-    }
+    } catch (e: any) { alert(e.response?.data?.message || '融合失败'); }
     setFusing(false);
   };
 
-  // Fusion result modal auto-dismiss (kept, modal needs it)
   useEffect(() => {
     if (!resultFlower) return;
     const timer = setTimeout(() => { setResult(null); setFusionResponse(null); }, 10000);
     return () => clearTimeout(timer);
   }, [resultFlower]);
 
-  // Close all overlay panels
-  const closeAllPanels = () => {
-    setShowShop(false);
-    setShowGardenPanel(false);
-    setShowWarehouse(false);
-    setShowFoundation(false);
-  };
+  const closeAllPanels = () => { setShowShop(false); setShowGardenPanel(false); setShowWarehouse(false); setShowFoundation(false); };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full bg-[#faf7f2] gap-4">
-        <div className="text-4xl animate-bounce-soft">🌺</div>
-        <p className="text-[#7a8c6e] text-sm animate-pulse">加载中...</p>
+      <div className="flex flex-col items-center justify-center w-full h-full gap-4" style={{ background: 'linear-gradient(180deg, #f5f9f3, #FAF8F5, #fdf5eb)' }}>
+        <div className="text-4xl animate-float">🌺</div>
+        <p className="text-[#8D6E63] text-sm font-medium">加载中...</p>
       </div>
     );
   }
 
   if (!isLoggedIn) {
     return (
-      <div className="w-full h-full bg-[#ffffff]">
+      <div className="w-full h-full" style={{ background: 'linear-gradient(180deg, #f5f9f3, #FAF8F5, #fdf5eb)' }}>
         <RegisterPanel />
       </div>
     );
@@ -258,81 +189,66 @@ const App: React.FC = () => {
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* ==================== Phaser Canvas (full screen) ==================== */}
+      {/* ==================== Phaser Canvas ==================== */}
       <div id="game-container" className="absolute inset-0" />
 
-      {/* ==================== Top-Left: User Info ==================== */}
-      <div className="absolute top-3 left-3 z-20">
-        <div className="bg-[#faf7f2]/80 backdrop-blur-md rounded-xl border border-[#c5d5b5]/30 px-3 py-2 flex items-center gap-3 shadow-lg">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-[#2e3d23] font-bold text-sm">
-            {(user?.name || '?')[0]}
+      {/* ==================== Top Bar (悬浮胶囊) ==================== */}
+      <div className="top-bar" style={{ position: 'absolute', top: 16, left: 16, right: 'auto', transform: 'none', zIndex: 50 }}>
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+          {(user?.name || '?')[0]}
+        </div>
+        <div>
+          <div className="text-[#3E2723] font-bold text-sm leading-tight">{user?.name}</div>
+          <div className="text-[#8D6E63] text-xs">
+            Lv.{user?.level}
+            {user?.title && <span className="ml-1" style={{ color: '#7B1FA2' }}>· {user.title}</span>}
           </div>
-          <div>
-            <div className="text-[#2e3d23] font-bold text-sm leading-tight">{user?.name}</div>
-            <div className="text-[#7a8c6e] text-xxs">
-              Lv.{user?.level}
-              {user?.title && <span className="ml-1 text-purple-700">· {user.title}</span>}
-            </div>
-          </div>
-          <div className="flex gap-2 text-xxs ml-1">
-            <span className="text-amber-700 bg-amber-50/80 px-1.5 py-0.5 rounded">💰 {user?.gold}</span>
-            <span className="text-cyan-700 bg-cyan-100/80 px-1.5 py-0.5 rounded">💎 {user?.diamond}</span>
-            <span className="text-purple-700 bg-purple-50/80 px-1.5 py-0.5 rounded">⭐ {user?.xp}</span>
-          </div>
+        </div>
+        <div className="flex gap-2">
+          <div className="top-stat stat-gold"><IconCoin size={18} /> {user?.gold}</div>
+          <div className="top-stat stat-gem"><IconGem size={18} /> {user?.diamond}</div>
+          <div className="top-stat stat-xp"><IconStar size={18} /> {user?.xp}</div>
         </div>
       </div>
 
-      {/* ==================== Top-Right: Panel Toggles ==================== */}
+      {/* ==================== Top-Right: Quick Toggles ==================== */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
           onClick={() => { setShowGardenPanel(!showGardenPanel); setShowShop(false); setShowWarehouse(false); setShowFoundation(false); }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all ${
-            showGardenPanel
-              ? 'bg-green-200/80 border border-green-400/40 text-green-700'
-              : 'bg-[#faf7f2]/60 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:text-[#2e3d23]'
+          className={`px-4 py-2 rounded-2xl text-xs font-bold backdrop-blur-md transition-all border ${
+            showGardenPanel ? 'glass-card border-green-300 text-green-700' : 'text-[#6D4C41]'
           }`}
-        >
-          🌻 花园
-        </button>
+          style={!showGardenPanel ? { background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.8)' } : { border: '1px solid rgba(124,179,66,0.4)' }}
+        >🌻 花园</button>
         <button
-          onClick={() => {
-            setCurrentPage('shop');
-            closeAllPanels();
-          }}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all bg-[#faf7f2]/60 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:text-[#2e3d23]"
-        >
-          🛒 商店
-        </button>
+          onClick={() => { setCurrentPage('shop'); closeAllPanels(); }}
+          className="px-4 py-2 rounded-2xl text-xs font-bold text-[#6D4C41] backdrop-blur-md transition-all"
+          style={{ background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(255,255,255,0.8)' }}
+        >🛒 商店</button>
       </div>
 
       {/* ==================== Overlay: Garden Panel ==================== */}
       {showGardenPanel && (
-        <div className="absolute top-16 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto
-                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-[#c5d5b5]/30 p-3
-                        animate-fade-in shadow-2xl">
+        <div className="glass-card absolute top-20 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto animate-slide-right">
           <GardenPanel />
         </div>
       )}
 
-      {/* ==================== Overlay: Shop Panel ==================== */}
+      {/* ==================== Overlay: Shop Panel (small) ==================== */}
       {showShop && (
-        <div className="absolute top-16 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto
-                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-[#c5d5b5]/30 p-3
-                        animate-fade-in shadow-2xl">
+        <div className="glass-card absolute top-20 right-3 z-20 w-72 max-h-[55vh] overflow-y-auto animate-slide-right">
           <ShopPanel />
         </div>
       )}
 
       {/* ==================== Overlay: Warehouse Panel (small) ==================== */}
       {showWarehouse && (
-        <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
-                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-amber-300/50 p-3
-                        animate-fade-in shadow-2xl">
+        <div className="glass-card absolute top-20 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto animate-slide-right">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold text-amber-700">🏚️ 仓库</h3>
+            <h3 className="text-sm font-bold" style={{ color: '#E65100' }}>🏚️ 仓库</h3>
             <div className="flex gap-2">
-              <button onClick={() => setCurrentPage('warehouse')} className="text-purple-700 hover:text-purple-600 text-xs">全屏</button>
-              <button onClick={() => setShowWarehouse(false)} className="text-[#9aac8a] hover:text-[#2e3d23] text-xs">✕</button>
+              <button onClick={() => setCurrentPage('warehouse')} className="text-[#6D4C41] hover:text-[#3E2723] text-xs font-medium">全屏</button>
+              <button onClick={() => setShowWarehouse(false)} className="text-[#8D6E63] hover:text-[#3E2723] text-xs">✕</button>
             </div>
           </div>
           <WarehousePanel />
@@ -341,12 +257,10 @@ const App: React.FC = () => {
 
       {/* ==================== Overlay: Foundation Panel ==================== */}
       {showFoundation && (
-        <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
-                        bg-[#faf7f2]/85 backdrop-blur-lg rounded-xl border border-purple-200/60 p-3
-                        animate-fade-in shadow-2xl">
+        <div className="glass-card absolute top-20 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto animate-slide-right">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold text-purple-600">🧬 性状稳定工程</h3>
-            <button onClick={() => setShowFoundation(false)} className="text-[#9aac8a] hover:text-[#2e3d23] text-xs">✕</button>
+            <h3 className="text-sm font-bold" style={{ color: '#7B1FA2' }}>🧬 性状稳定工程</h3>
+            <button onClick={() => setShowFoundation(false)} className="text-[#8D6E63] hover:text-[#3E2723] text-xs">✕</button>
           </div>
           <FoundationPanel />
         </div>
@@ -354,88 +268,73 @@ const App: React.FC = () => {
 
       {/* ==================== Fusion Flow Indicator ==================== */}
       {activeTool === 'knife' && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-25">
-          <div className="bg-[#faf7f2]/90 backdrop-blur-lg rounded-xl border border-purple-300/60 p-4
-                          text-center animate-fade-in shadow-2xl min-w-[200px]">
+        <div className="absolute top-1/2 left-1/2 z-25" style={{ transform: 'translate(-50%, -50%)' }}>
+          <div className="glass-card text-center min-w-[220px]">
             <div className="text-2xl mb-2">🔪</div>
             {fusionStep === 'selectA' && (
               <>
-                <p className="text-[#2e3d23] font-bold text-sm mb-1">选择第一朵花</p>
+                <p className="text-[#3E2723] font-bold text-sm mb-1">选择第一朵花</p>
                 <p className="text-red-700 text-xs mb-1">⚠️ 嫁接刀下必有一死</p>
-                <p className="text-[#7a8c6e] text-xs">点击花园中生长期的花</p>
+                <p className="text-[#8D6E63] text-xs">点击花园中生长期的花</p>
               </>
             )}
             {fusionStep === 'selectB' && fusionParentA && (
               <>
-                <p className="text-[#2e3d23] font-bold text-sm mb-1">选择第二朵花</p>
+                <p className="text-[#3E2723] font-bold text-sm mb-1">选择第二朵花</p>
                 <div className="flex items-center justify-center gap-2 mb-1 text-xs">
-                  <span className="text-purple-600">已选：{fusionParentA.name}</span>
+                  <span className="text-purple-700">已选：{fusionParentA.name}</span>
                   <span className="text-red-500">🔪必死</span>
                 </div>
-                <p className="text-[#7a8c6e] text-xs">点击花园中另一朵生长期的花</p>
+                <p className="text-[#8D6E63] text-xs">点击花园中另一朵生长期的花</p>
               </>
             )}
             {fusionStep === 'soil' && showFusionPanel && (
-              <FusionSoilPicker
-                fusionParentA={fusionParentA}
-                fusionParentB={fusionParentB}
-                soil={fusionSoil}
-                setSoil={setFusionSoil}
-                fusing={fusing}
-                onFuse={handleExecuteFusion}
-                onCancel={() => { setActiveTool(null); }}
-              />
+              <FusionSoilPicker fusionParentA={fusionParentA} fusionParentB={fusionParentB} soil={fusionSoil} setSoil={setFusionSoil} fusing={fusing} onFuse={handleExecuteFusion} onCancel={() => { setActiveTool(null); }} />
             )}
-            {!fusionStep && (
-              <p className="text-[#7a8c6e] text-xs">准备嫁接...</p>
-            )}
+            {!fusionStep && (<p className="text-[#8D6E63] text-xs">准备嫁接...</p>)}
           </div>
         </div>
       )}
 
-      {/* Socket toast removed — bloom notification moved to GardenPanel.grow() */}
-
-      {/* ==================== Fusion Result Modal ==================== */}
+      {/* Fusion Result Modal */}
       <FusionResultModal />
 
-      {/* ==================== Bottom: Toolbar + Seed/Glove/Knife Hints ==================== */}
+      {/* ==================== Bottom: Seed/Glove Hints + Toolbar ==================== */}
       <div className="absolute bottom-0 left-0 right-0 z-20">
-        {/* Seed picker */}
         {activeTool === 'seed' && (
-          <div className="bg-[#faf7f2]/90 backdrop-blur-md border-t border-amber-300/50 p-2 animate-fade-in">
-            <div className="flex items-center gap-2 flex-wrap justify-center">
-              <span className="text-amber-700 text-xs font-medium">选择种子：</span>
+          <div className="text-center pb-3 animate-fade-in">
+            <div className="inline-flex items-center gap-2 flex-wrap justify-center p-2 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
+              <span className="text-[#6D4C41] text-xs font-bold">选择种子：</span>
               {seeds.length === 0 ? (
-                <span className="text-[#7a8c6e] text-xs">没有种子，去商店购买</span>
+                <span className="text-[#8D6E63] text-xs">去 🛒 商店购买</span>
               ) : (
                 seeds.map((seed) => (
                   <button
                     key={seed.name}
                     onClick={() => setPickedSeed(pickedSeed?.name === seed.name ? null : seed)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                    className={`flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold transition-all border ${
                       pickedSeed?.name === seed.name
-                        ? 'bg-amber-200/80 border border-amber-400 text-amber-700'
-                        : 'bg-[#ffffff] border border-[#e8f0e0] text-[#5a6b4c] hover:border-amber-400/50'
+                        ? 'bg-white border-amber-300 text-amber-700 shadow-sm'
+                        : 'bg-white/60 border-transparent text-[#6D4C41] hover:border-amber-200'
                     }`}
                   >
-                    <span>🌰</span>
-                    <span>{seed.name}</span>
-                    <span className="text-amber-500 font-bold">×{seed.count}</span>
+                    <span>🌰</span><span>{seed.name}</span><span className="text-amber-600">×{seed.count}</span>
                   </button>
                 ))
               )}
             </div>
             {pickedSeed && (
-              <p className="text-amber-700 text-xs text-center mt-1.5 animate-fade-in">
+              <p className="text-amber-700 text-xs text-center mt-2 animate-fade-in font-medium">
                 👆 已选中「{pickedSeed.name}」，点击花盆种植
               </p>
             )}
           </div>
         )}
-
         {activeTool === 'glove' && (
-          <div className="bg-[#faf7f2]/90 backdrop-blur-md border-t border-green-300/50 p-2 animate-fade-in text-center">
-            <p className="text-green-700 text-xs">👆 点击盛放期（🌸）花朵收获 → 花存入仓库</p>
+          <div className="text-center pb-3 animate-fade-in">
+            <span className="inline-block p-2 rounded-2xl text-green-700 text-xs font-medium" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
+              👆 点击盛放期（🌸）花朵收获 → 花存入仓库
+            </span>
           </div>
         )}
 
@@ -444,24 +343,20 @@ const App: React.FC = () => {
           setActiveTool={(t) => { setActiveTool(t); if (t !== 'seed') setPickedSeed(null); }}
           seedCount={totalSeeds}
           onOpenWarehouse={() => setCurrentPage('warehouse')}
-          onOpenFoundation={() => {
-            closeAllPanels();
-            setShowFoundation(!showFoundation);
-          }}
+          onOpenShop={() => setCurrentPage('shop')}
+          onOpenFoundation={() => { closeAllPanels(); setShowFoundation(!showFoundation); }}
+          currentPage={currentPage}
         />
       </div>
+
       {/* ==================== Full-Screen Pages ==================== */}
-      {currentPage === 'warehouse' && (
-        <WarehousePage onClose={() => setCurrentPage('garden')} />
-      )}
-      {currentPage === 'shop' && (
-        <ShopPage onClose={() => setCurrentPage('garden')} />
-      )}
+      {currentPage === 'warehouse' && (<WarehousePage onClose={() => setCurrentPage('garden')} />)}
+      {currentPage === 'shop' && (<ShopPage onClose={() => setCurrentPage('garden')} />)}
     </div>
   );
 };
 
-// ========== Inline Fusion Soil Picker (shown in fusion flow popup) ==========
+// ========== Inline Fusion Soil Picker ==========
 
 const FusionSoilPicker: React.FC<{
   fusionParentA: { name: string } | null;
@@ -476,37 +371,28 @@ const FusionSoilPicker: React.FC<{
     <div className="flex items-center justify-center gap-2 mb-3 text-xs">
       <span className="text-red-700">{fusionParentA?.name} 🔪</span>
       <span className="text-purple-700">×</span>
-      <span className="text-[#2e3d23]">{fusionParentB?.name}</span>
+      <span className="text-[#3E2723]">{fusionParentB?.name}</span>
     </div>
-
-    <p className="text-[#5a6b4c] text-xs mb-2">选择土壤：</p>
+    <p className="text-[#6D4C41] text-xs mb-2">选择土壤：</p>
     <div className="grid grid-cols-2 gap-1.5 mb-3">
       {soils.map((s) => (
         <button
           key={s.key}
           onClick={() => setSoil(s.key)}
-          className={`text-left p-1.5 rounded-lg text-xs transition-all ${
+          className={`text-left p-2 rounded-xl text-xs transition-all ${
             soil === s.key
-              ? 'bg-purple-200/80 border border-purple-400 text-[#2e3d23]'
-              : 'bg-[#ffffff] border border-[#e8f0e0] text-[#7a8c6e] hover:border-purple-900/50'
+              ? 'bg-purple-100 border border-purple-300 text-[#3E2723]'
+              : 'bg-white/60 border border-transparent text-[#8D6E63] hover:border-purple-200'
           }`}
         >
-          <span className="mr-1">{s.emoji}</span>
-          <span className="font-medium">{s.name}</span>
-          <span className="text-[#b0c2a0] ml-1">{s.desc}</span>
+          <span className="mr-1">{s.emoji}</span><span className="font-medium">{s.name}</span>
+          <span className="text-[#8D6E63] ml-1">{s.desc}</span>
         </button>
       ))}
     </div>
-
     <div className="flex gap-2">
-      <button onClick={onCancel} className="flex-1 py-1.5 rounded-lg bg-[#ffffff] text-[#5a6b4c] text-xs hover:text-[#2e3d23]">
-        取消
-      </button>
-      <button
-        onClick={onFuse}
-        disabled={fusing}
-        className="flex-1 py-1.5 rounded-lg bg-green-600 text-[#2e3d23] text-xs font-bold hover:bg-green-500 disabled:opacity-50"
-      >
+      <button onClick={onCancel} className="btn btn-secondary flex-1 py-1.5 text-xs">取消</button>
+      <button onClick={onFuse} disabled={fusing} className="btn btn-primary flex-1 py-1.5 text-xs">
         {fusing ? '⚗️ 融合中...' : '✨ 开始嫁接'}
       </button>
     </div>

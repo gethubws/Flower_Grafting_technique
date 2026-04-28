@@ -5,27 +5,20 @@ import { useUserStore } from '../../stores/user.store';
 import { useGardenStore } from '../../stores/garden.store';
 import { bridge, BridgeEvent } from '../../game/bridge';
 import { FlowerDetailModal } from '../common/FlowerDetailModal';
+import { FlowerRose, FlowerSunflower, FlowerTulip, FlowerLily, FlowerOrchid, FlowerFusion, IconCoin } from '../common/GameIcons';
 import type { Seed, PlayerSeedItem, ShopSort, AtomBrief } from '../../types';
 
-const RARITY_ORDER: Record<string, number> = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
-const RARITY_COLORS: Record<string, string> = {
-  N: 'text-[#5a6b4c] border-gray-600',
-  R: 'text-blue-600 border-blue-300/60',
-  SR: 'text-purple-600 border-purple-300/60',
-  SSR: 'text-amber-600 border-amber-300/60',
-  UR: 'text-red-700 border-red-400/60',
-};
-const RARITY_BG: Record<string, string> = {
-  N: 'from-gray-100 to-gray-50',
-  R: 'from-blue-50 to-gray-50',
-  SR: 'from-purple-50 to-gray-50',
-  SSR: 'from-amber-50 to-gray-50',
-  UR: 'from-red-50 to-gray-50',
+const FLOWER_SVGS: Record<string, React.FC<any>> = {
+  '玫瑰': FlowerRose,
+  '向日葵': FlowerSunflower,
+  '郁金香': FlowerTulip,
+  '百合': FlowerLily,
+  '蝴蝶兰': FlowerOrchid,
 };
 
-interface Props {
-  onClose: () => void;
-}
+const RARITY_ORDER: Record<string, number> = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
+
+interface Props { onClose: () => void; }
 
 export const ShopPage: React.FC<Props> = ({ onClose }) => {
   const [tab, setTab] = useState<'system' | 'player'>('system');
@@ -41,10 +34,7 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [sysData, playerData] = await Promise.all([
-        shopApi.getSeeds('system'),
-        shopApi.getSeeds('player', sort),
-      ]);
+      const [sysData, playerData] = await Promise.all([shopApi.getSeeds('system'), shopApi.getSeeds('player', sort)]);
       setSystemSeeds((sysData as any)?.system || sysData || []);
       setPlayerSeeds((playerData as any)?.player || playerData || []);
     };
@@ -58,12 +48,9 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
       await shopApi.buySeed(seedId);
       updateGold(-price);
       const [garden, inv] = await Promise.all([gardenApi.getGarden(), gardenApi.getSeedInventory()]);
-      setSlots(garden);
-      setSeedInventory(inv);
+      setSlots(garden); setSeedInventory(inv);
       bridge.emit(BridgeEvent.REFRESH_GARDEN, garden);
-    } catch (e: any) {
-      alert(e.response?.data?.message || '购买失败');
-    }
+    } catch (e: any) { alert(e.response?.data?.message || '购买失败'); }
     setBuying(null);
   };
 
@@ -79,85 +66,78 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#faf7f2] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: 'linear-gradient(180deg, #f5f9f3, #FAF8F5)' }} onClick={(e) => e.stopPropagation()}>
       {/* Header */}
       <div className="sticky top-0 z-10 page-header px-4 py-3">
         <div className="flex items-center justify-between max-w-5xl mx-auto">
-          <button onClick={onClose} className="flex items-center gap-2 text-[#5a6b4c] hover:text-[#2e3d23] text-sm transition-all hover:gap-3">
-            <span className="text-base">←</span>
-            <span className="font-medium">返回花园</span>
+          <button onClick={onClose} className="flex items-center gap-2 text-[#6D4C41] hover:text-[#3E2723] text-sm transition-all hover:gap-3">
+            <span className="text-base">←</span><span className="font-medium">返回花园</span>
           </button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shadow-inner">🛒</div>
-            <h1 className="text-lg font-bold text-[#2e3d23]">种子商店</h1>
+            <h1 className="text-lg font-bold" style={{ color: '#3E2723' }}>种子商店</h1>
           </div>
           <div className="w-16" />
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 bg-[#ffffff] rounded-2xl p-1.5 max-w-sm shadow-sm border border-[#dce8d0]">
+        {/* Tabs — sliding segmented control */}
+        <div className="flex mb-6 max-w-xs rounded-2xl p-1.5 border border-white/60 shadow-sm" style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)' }}>
           {(['system', 'player'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`tab-btn flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                tab === t ? 'active bg-white/10 text-[#2e3d23]' : 'text-[#7a8c6e] hover:text-[#3a5a2a]'
+            <button key={t} onClick={() => setTab(t)}
+              className={`tab-btn flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                tab === t ? 'active bg-white text-green-700 shadow-sm' : 'text-[#8D6E63] hover:text-[#3E2723]'
               }`}
-            >
-              {t === 'system' ? '🌱 系统' : '⭐ 玩家'}
-            </button>
+            >{t === 'system' ? '🌱 系统' : '⭐ 玩家'}</button>
           ))}
         </div>
 
-        {/* Sort (player) */}
+        {/* Sort (player only) */}
         {tab === 'player' && (
-          <div className="flex gap-1.5 mb-4">
+          <div className="flex gap-2 mb-5 flex-wrap">
             {(['newest', 'sales', 'rarity'] as ShopSort[]).map((s) => (
-              <button
-                key={s}
-                onClick={() => setSort(s)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                  sort === s ? 'bg-purple-800/60 text-[#2e3d23] border border-purple-400' : 'bg-[#ffffff] text-[#7a8c6e] hover:text-[#3a5a2a] border border-transparent'
+              <button key={s} onClick={() => setSort(s)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  sort === s
+                    ? 'bg-green-100 text-green-800 border border-green-300 shadow-sm'
+                    : 'bg-white text-[#6D4C41] border border-[rgba(141,110,99,0.15)] hover:border-green-300'
                 }`}
-              >
-                {{ newest: '🕐 最新', sales: '📈 销量', rarity: '💎 稀有度' }[s]}
-              </button>
+              >{{ newest: '🕐 最新', sales: '📈 销量', rarity: '💎 稀有度' }[s]}</button>
             ))}
           </div>
         )}
 
-        {/* System seeds */}
+        {/* ===== System seeds ===== */}
         {tab === 'system' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {systemSeeds.length === 0 ? (
               <div className="col-span-full empty-state">
                 <div className="empty-state-icon">🌱</div>
-                <div className="text-[#2e3d23] font-bold text-lg mb-2">暂无系统种子</div>
+                <div className="empty-state-title">暂无系统种子</div>
                 <p className="empty-state-text">商店正在进货中，请稍后再来</p>
               </div>
             ) : (
               systemSeeds.map((seed) => {
+                const FlowerSvg = FLOWER_SVGS[seed.name] || FlowerFusion;
                 const canBuy = (user?.gold ?? 0) >= seed.priceGold;
                 return (
-                  <div key={seed.id} className="bg-gradient-to-b from-gray-800/60 to-gray-900/30 border border-gray-600 rounded-xl overflow-hidden animate-fade-in hover:shadow-lg hover:scale-[1.02] transition-all">
-                    <div className="h-36 bg-[#faf7f2] flex items-center justify-center">
-                      <span className="text-6xl">{seed.emoji}</span>
+                  <div key={seed.id} className="shop-card animate-fade-in">
+                    <div className="img-area">
+                      <FlowerSvg size={80} />
                     </div>
-                    <div className="p-4">
-                      <h3 className="text-[#2e3d23] font-bold text-sm mb-1">{seed.name}</h3>
-                      <p className="text-[#9aac8a] text-xs mb-3">{seed.description}</p>
+                    <div className="info-area">
+                      <h3 className="font-extrabold text-base mb-1" style={{ color: '#3E2723' }}>{seed.name}</h3>
+                      <p className="text-[#8D6E63] text-xs leading-relaxed mb-4">{seed.description}</p>
                       <button
                         onClick={() => handleBuy(seed.id, seed.priceGold)}
                         disabled={buying === seed.id || !canBuy}
-                        className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
-                          canBuy
-                            ? 'bg-gradient-to-r from-green-600 to-green-500 text-[#2e3d23] hover:from-purple-600 hover:to-purple-500'
-                            : 'bg-[#ffffff] text-[#9aac8a] cursor-not-allowed'
-                        } disabled:opacity-40`}
+                        className={`w-full py-2.5 rounded-xl text-sm font-extrabold transition-all ${
+                          canBuy ? 'btn btn-gold w-full' : 'bg-gray-100 text-gray-400 cursor-not-allowed rounded-xl'
+                        }`}
+                        style={canBuy ? { width: '100%' } : undefined}
                       >
-                        {buying === seed.id ? '购买中...' : `💰 ${seed.priceGold}g`}
+                        {buying === seed.id ? '购买中...' : <span className="flex items-center justify-center gap-1"><IconCoin size={16} /> {seed.priceGold}g</span>}
                       </button>
                     </div>
                   </div>
@@ -167,45 +147,49 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
           </div>
         )}
 
-        {/* Player seeds */}
+        {/* ===== Player Foundation seeds ===== */}
         {tab === 'player' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {sortedPlayer.length === 0 ? (
               <div className="col-span-full empty-state">
                 <div className="empty-state-icon">⭐</div>
-                <div className="text-[#2e3d23] font-bold text-lg mb-2">暂无玩家奠基种</div>
+                <div className="empty-state-title">暂无玩家奠基种</div>
                 <p className="empty-state-text">完成10次性状稳定培育后可上架自己的奠基种</p>
               </div>
             ) : (
               sortedPlayer.map((seed) => {
                 const canBuy = (user?.gold ?? 0) >= seed.priceGold;
                 return (
-                  <div key={seed.id} onClick={() => setDetailSeed(seed)} className="bg-gradient-to-b from-purple-900/20 to-gray-900/30 border border-purple-400/30 rounded-xl overflow-hidden animate-fade-in hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer">
-                    {/* Image */}
-                    <div className="h-36 bg-[#faf7f2] flex items-center justify-center overflow-hidden">
+                  <div key={seed.id} onClick={() => setDetailSeed(seed)} className="shop-card glass-card-interactive animate-fade-in">
+                    <div className="img-area" style={{ background: 'linear-gradient(135deg, #F3E5F5 0%, #E8F5E9 50%, #FFF8E1 100%)' }}>
                       {seed.imageUrl ? (
                         <img src={seed.imageUrl} alt={seed.name} className="w-full h-full object-contain" />
                       ) : (
-                        <span className="text-6xl">{seed.emoji || '⭐'}</span>
+                        <FlowerFusion size={80} />
                       )}
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-purple-700 border border-purple-200" style={{ zIndex: 2 }}>
+                        {seed.atomCount}因子
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="text-[#2e3d23] font-bold text-sm mb-1">{seed.name}</h3>
-                      <div className="text-[#7a8c6e] text-xs flex gap-2 mb-3">
-                        <span>{seed.atomCount} 因子</span>
-                        <span>·</span>
-                        <span className="text-amber-700/70">已售 {seed.totalSold}</span>
+                    <div className="info-area">
+                      <h3 className="font-extrabold text-base mb-1 truncate" style={{ color: '#3E2723' }}>{seed.name}</h3>
+                      <div className="text-[#8D6E63] text-xs flex items-center gap-2 mb-4">
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                          {seed.atomCount} 因子
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-[#8D6E63] opacity-20"></span>
+                        <span className="text-amber-700 font-medium">已售 {seed.totalSold}</span>
                       </div>
                       <button
-                        onClick={() => handleBuy(seed.id, seed.priceGold)}
+                        onClick={(e) => { e.stopPropagation(); handleBuy(seed.id, seed.priceGold); }}
                         disabled={buying === seed.id || !canBuy}
-                        className={`w-full py-2 rounded-lg text-xs font-bold transition-all ${
-                          canBuy
-                            ? 'bg-gradient-to-r from-green-600 to-green-500 text-[#2e3d23] hover:from-purple-600 hover:to-purple-500'
-                            : 'bg-[#ffffff] text-[#9aac8a] cursor-not-allowed'
-                        } disabled:opacity-40`}
+                        className={`w-full py-2.5 rounded-xl text-sm font-extrabold transition-all ${
+                          canBuy ? 'btn btn-gold w-full' : 'bg-gray-100 text-gray-400 cursor-not-allowed rounded-xl'
+                        }`}
+                        style={canBuy ? { width: '100%' } : undefined}
                       >
-                        {buying === seed.id ? '购买中...' : `💰 ${seed.priceGold}g`}
+                        {buying === seed.id ? '购买中...' : <span className="flex items-center justify-center gap-1"><IconCoin size={16} /> {seed.priceGold}g</span>}
                       </button>
                     </div>
                   </div>
@@ -230,16 +214,11 @@ export const ShopPage: React.FC<Props> = ({ onClose }) => {
           <button
             onClick={() => { handleBuy(detailSeed.id, detailSeed.priceGold); setDetailSeed(null); }}
             disabled={buying === detailSeed.id || !user || user.gold < detailSeed.priceGold}
-            className="flex-1 py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-[#2e3d23] text-sm font-bold hover:from-purple-600 hover:to-purple-500 transition-all disabled:opacity-40"
+            className="btn btn-gold flex-1 py-2 text-sm"
           >
-            {buying === detailSeed.id ? '购买中...' : `🛒 购买 ${detailSeed.priceGold}g`}
+            🛒 购买 {detailSeed.priceGold}g
           </button>
-          <button
-            onClick={() => setDetailSeed(null)}
-            className="px-4 py-2 rounded-lg bg-[#ffffff] text-[#5a6b4c] text-sm hover:text-[#2e3d23] transition-colors"
-          >
-            关闭
-          </button>
+          <button onClick={() => setDetailSeed(null)} className="btn btn-secondary px-4 py-2 text-sm">关闭</button>
         </FlowerDetailModal>
       )}
     </div>

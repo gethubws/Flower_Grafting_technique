@@ -1,4 +1,7 @@
 import React from 'react';
+import {
+  IconSeedBag, IconGlove, IconKnife, IconWarehouse, IconDNA,
+} from './GameIcons';
 
 interface ToolbarProps {
   activeTool: 'seed' | 'glove' | 'knife' | null;
@@ -6,6 +9,8 @@ interface ToolbarProps {
   seedCount: number;
   onOpenWarehouse?: () => void;
   onOpenFoundation?: () => void;
+  onOpenShop?: () => void;
+  currentPage?: string;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -14,101 +19,81 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   seedCount,
   onOpenWarehouse,
   onOpenFoundation,
+  onOpenShop,
+  currentPage,
 }) => {
-  const btnClass = (tool: typeof activeTool) =>
-    `relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-      activeTool === tool
-        ? 'bg-white/10 border border-[#95a585]/60 text-[#2e3d23] shadow-[0_0_12px_rgba(255,255,255,0.15)]'
-        : 'bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-[#a5b595]/50 hover:text-[#2e3d23]'
-    }`;
+  const isPageActive = (page: string) => currentPage === page;
 
   return (
-    <div className="flex items-center justify-center gap-3 p-3 bg-[#faf7f2]/90 backdrop-blur-md border-t border-[#c5d5b5]/30">
-      {/* Seed Bag */}
+    <div className="tool-dock">
+      {/* 种子袋 */}
       <button
         onClick={() => setActiveTool(activeTool === 'seed' ? null : 'seed')}
-        className={btnClass('seed')}
-        style={{
-          ...(activeTool === 'seed' ? {
-            borderColor: 'rgba(245,158,11,0.5)',
-            boxShadow: '0 0 16px rgba(245,158,11,0.25)',
-            color: '#fbbf24',
-          } : {}),
-        }}
+        className={`tool-btn ${activeTool === 'seed' ? 'active' : ''}`}
+        title="种子袋"
       >
-        <span className="text-lg">🌰</span>
-        <span>种子袋</span>
+        <IconSeedBag />
         {seedCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-black text-xxs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {seedCount}
-          </span>
+          <span className="badge">{seedCount}</span>
         )}
       </button>
 
-      {/* Glove */}
+      {/* 园艺手套 (收获) */}
       <button
         onClick={() => setActiveTool(activeTool === 'glove' ? null : 'glove')}
-        className={btnClass('glove')}
-        style={{
-          ...(activeTool === 'glove' ? {
-            borderColor: 'rgba(34,197,94,0.5)',
-            boxShadow: '0 0 16px rgba(34,197,94,0.25)',
-            color: '#4ade80',
-          } : {}),
-        }}
+        className={`tool-btn ${activeTool === 'glove' ? 'active' : ''}`}
+        title="园艺手套"
       >
-        <span className="text-lg">🧤</span>
-        <span>园艺手套</span>
+        <IconGlove />
       </button>
 
-      {/* Grafting Knife */}
+      {/* 嫁接刀 (融合) */}
       <button
         onClick={() => setActiveTool(activeTool === 'knife' ? null : 'knife')}
-        className={btnClass('knife')}
-        style={{
-          ...(activeTool === 'knife' ? {
-            borderColor: 'rgba(168,85,247,0.5)',
-            boxShadow: '0 0 16px rgba(168,85,247,0.25)',
-            color: '#c084fc',
-          } : {}),
-        }}
+        className={`tool-btn ${activeTool === 'knife' ? 'active' : ''}`}
+        title="嫁接刀"
       >
-        <span className="text-lg">🔪</span>
-        <span>嫁接刀</span>
+        <IconKnife />
       </button>
 
-      {/* Divider */}
-      <div className="w-px h-6 bg-white/5 mx-1" />
+      {/* 分隔 */}
+      <div style={{ width: 2, background: 'rgba(141,110,99,0.1)', borderRadius: 1, margin: '0 4px' }} />
 
-      {/* Warehouse */}
+      {/* 商店 */}
+      {onOpenShop && (
+        <button
+          onClick={onOpenShop}
+          className={`tool-btn ${isPageActive('shop') ? 'active' : ''}`}
+          style={!isPageActive('shop') ? { background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%)' } : undefined}
+          title="种子商店"
+        >
+          <span style={{ fontSize: 26, lineHeight: 1 }}>🛒</span>
+        </button>
+      )}
+
+      {/* 仓库 */}
       {onOpenWarehouse && (
         <button
           onClick={onOpenWarehouse}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-amber-400/50 hover:text-amber-700 transition-all"
+          className={`tool-btn ${isPageActive('warehouse') ? 'active' : ''}`}
+          style={!isPageActive('warehouse') ? { background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%)' } : undefined}
+          title="仓库"
         >
-          <span className="text-lg">🏚️</span>
-          <span>仓库</span>
+          <IconWarehouse />
         </button>
       )}
 
-      {/* Foundation */}
+      {/* 稳定工程 */}
       {onOpenFoundation && (
         <button
           onClick={onOpenFoundation}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#ffffff]/70 border border-[#c5d5b5]/30 text-[#5a6b4c] hover:border-purple-800/50 hover:text-purple-700 transition-all"
+          className={`tool-btn ${isPageActive('foundation') ? 'active' : ''}`}
+          style={!isPageActive('foundation') ? { background: 'linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%)' } : undefined}
+          title="性状稳定工程"
         >
-          <span className="text-lg">🧬</span>
-          <span>稳定工程</span>
+          <IconDNA />
         </button>
       )}
-
-      {/* Hint */}
-      <span className="text-[#b0c2a0] text-xs ml-1">
-        {activeTool === 'seed' ? '选择种子 → 点花盆播种' :
-         activeTool === 'glove' ? '点盛放花朵收获' :
-         activeTool === 'knife' ? '选择两朵生长期花嫁接' :
-         '选择工具开始'}
-      </span>
     </div>
   );
 };

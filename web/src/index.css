@@ -2,22 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --text-primary: #2e3d23;
-  --text-secondary: #5a6b4c;
-  --bg-main: #faf7f2;
-  --bg-card: #ffffff;
-  --green-500: #4caf50;
-  --green-400: #66bb6a;
-  --sage-300: #a5c9a5;
-  --sage-200: #d4e8c5;
-  --sage-100: #e8f0e0;
+/* =====================================================
+   花语秘境 · 梦幻园艺 · 玻璃拟态 Design System
+   ===================================================== */
 
-  font-family: 'Inter', 'Noto Sans SC', system-ui, Avenir, Helvetica, Arial, sans-serif;
+:root {
+  /* 主色调 - 从天空和草地提取 */
+  --sky-primary: #5DB9E8;
+  --sky-light: #A8D8F0;
+  --grass-primary: #7CB342;
+  --grass-dark: #558B2F;
+
+  /* 土壤与木质感 */
+  --wood-primary: #8D6E63;
+  --wood-light: #D7CCC8;
+  --soil: #5D4037;
+
+  /* 花朵强调色 */
+  --flower-rose: #E91E63;
+  --flower-sun: #FFC107;
+  --flower-tulip: #9C27B0;
+  --flower-lily: #F8BBD0;
+  --flower-orchid: #FF5722;
+
+  /* UI 中性色 */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: rgba(91, 140, 90, 0.15);
+  --text-primary: #3E2723;
+  --text-secondary: #6D4C41;
+
+  /* 字体 */
+  font-family: 'Nunito', 'Quicksand', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   line-height: 1.6;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-primary);
-  background-color: var(--bg-main);
+  background-color: #FAF8F5;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,288 +45,369 @@
 body {
   min-height: 100vh;
   overflow: hidden;
-  /* Subtle botanical pattern */
-  background:
-    radial-gradient(circle at 20% 30%, rgba(76, 175, 80, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(139, 195, 74, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(165, 201, 165, 0.02) 0%, transparent 80%),
-    linear-gradient(180deg, #fafcf5 0%, #faf7f2 30%, #f5f0e8 100%);
-  background-attachment: fixed;
-}
-
-/* Subtle leaf pattern overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.03;
-  background-image:
-    repeating-linear-gradient(45deg, transparent, transparent 39px, #4caf50 39px, #4caf50 40px),
-    repeating-linear-gradient(-45deg, transparent, transparent 39px, #8bc34a 39px, #8bc34a 40px);
+  background: linear-gradient(180deg, #f5f9f3 0%, #FAF8F5 30%, #fdf5eb 100%);
 }
 
 #root { width: 100%; height: 100vh; position: relative; z-index: 1; }
-
 #game-container { width: 100%; height: 100%; }
 
 /* ===== Animations ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeInScale {
   from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
-@keyframes bloomPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 179, 66, 0.2); }
+  50%      { box-shadow: 0 0 40px rgba(124, 179, 66, 0.5); }
 }
 @keyframes shimmer {
-  0% { background-position: -400% 0; }
+  0%   { background-position: -400% 0; }
   100% { background-position: 400% 0; }
-}
-@keyframes bounce-soft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
 }
 @keyframes float-leaf {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  33% { transform: translateY(-4px) rotate(1deg); }
-  66% { transform: translateY(-2px) rotate(-1deg); }
+  33%      { transform: translateY(-4px) rotate(1deg); }
+  66%      { transform: translateY(-2px) rotate(-1deg); }
 }
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.3); }
+  50%      { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
 }
-@keyframes drawIn {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 0 0 0); }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-1deg); }
+  50%      { transform: rotate(1deg); }
 }
 
 .animate-fade-in     { animation: fadeIn 0.4s ease-out; }
 .animate-fade-scale  { animation: fadeInScale 0.3s ease-out; }
 .animate-slide-up    { animation: slideUp 0.5s ease-out; }
-.animate-bounce-soft { animation: bounce-soft 2s ease-in-out infinite; }
+.animate-slide-right { animation: slideInRight 0.4s ease-out; }
+.animate-breathe     { animation: breathe 3s ease-in-out infinite; }
+.animate-float       { animation: float-leaf 4s ease-in-out infinite; }
 
-/* ===== Card base ===== */
-.card {
-  background: #ffffff;
-  border: 1px solid #e0ecd5;
-  border-radius: 14px;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+/* ===== Glass Card (毛玻璃卡片) ===== */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
   box-shadow:
-    0 1px 2px rgba(46, 61, 35, 0.04),
-    0 2px 6px rgba(46, 61, 35, 0.04);
-  position: relative;
-  overflow: hidden;
+    0 8px 32px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 16px;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2),
+              box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2);
 }
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  pointer-events: none;
-  border: 1px solid rgba(76, 175, 80, 0.06);
-  transition: border-color 0.25s;
-}
-.card:hover {
-  border-color: #a5d6a7;
-  box-shadow:
-    0 2px 4px rgba(46, 61, 35, 0.06),
-    0 8px 20px rgba(76, 175, 80, 0.1);
+.glass-card:hover {
   transform: translateY(-2px);
-}
-.card:hover::after {
-  border-color: rgba(76, 175, 80, 0.12);
-}
-
-/* Page card (full width, ingrid) */
-.page-card {
-  background: #ffffff;
-  border: 1px solid #dce8d0;
-  border-radius: 16px;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2);
   box-shadow:
-    0 1px 3px rgba(46, 61, 35, 0.05),
-    0 4px 12px rgba(46, 61, 35, 0.04);
+    0 12px 40px rgba(91, 140, 90, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
-.page-card:hover {
-  transform: translateY(-3px);
+.glass-card-interactive {
+  cursor: pointer;
+}
+.glass-card-interactive:hover {
+  transform: translateY(-4px) scale(1.02);
   box-shadow:
-    0 2px 6px rgba(46, 61, 35, 0.06),
-    0 12px 28px rgba(76, 175, 80, 0.1);
+    0 16px 48px rgba(91, 140, 90, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-/* ===== Rarity glow ===== */
-.rarity-N  { border-color: #c8c8c8; }
-.rarity-R  { border-color: #90caf9; box-shadow: 0 0 16px rgba(144, 202, 249, 0.18); }
-.rarity-SR { border-color: #ce93d8; box-shadow: 0 0 20px rgba(206, 147, 216, 0.2); }
-.rarity-SSR{ border-color: #ffb300; box-shadow: 0 0 24px rgba(255, 179, 0, 0.22); }
-.rarity-UR { border-color: #ef5350; box-shadow: 0 0 28px rgba(239, 83, 80, 0.25); }
-
-/* ===== Progress bar ===== */
-.progress-bar {
-  height: 5px;
-  border-radius: 3px;
-  background: #eef5e8;
-  overflow: hidden;
+/* ===== Tool Dock (底部悬浮工具栏) ===== */
+.tool-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 28px;
+  box-shadow:
+    0 8px 32px rgba(78, 52, 46, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  z-index: 100;
 }
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1.2);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
-}
-
-/* ===== Tab ===== */
-.tab-btn {
+.tool-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  border: none;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+  box-shadow:
+    0 4px 12px rgba(141, 110, 99, 0.18),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  overflow: visible;
+  border: 3px solid rgba(255, 255, 255, 0.85);
 }
-.tab-btn::after {
+.tool-btn:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 32px rgba(141, 110, 99, 0.25);
+}
+.tool-btn:active {
+  transform: translateY(-2px) scale(1.03);
+}
+.tool-btn.active {
+  background: linear-gradient(135deg, #66BB6A 0%, #42A5F5 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 28px rgba(66, 165, 245, 0.4);
+  transform: scale(1.1);
+}
+.tool-btn.active svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) brightness(0) invert(1);
+}
+.tool-btn .badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #FF5252, #D32F2F);
+  color: white;
+  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);
+}
+
+/* ===== Top Bar (悬浮胶囊顶部栏) ===== */
+.top-bar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow:
+    0 4px 20px rgba(78, 52, 46, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  z-index: 90;
+}
+.top-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.top-stat svg {
+  width: 20px;
+  height: 20px;
+}
+.stat-gold {
+  background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.stat-gem {
+  background: linear-gradient(135deg, #E1F5FE, #B3E5FC);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.stat-xp {
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ===== Page Header (全屏页面顶部) ===== */
+.page-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(124, 179, 66, 0.15);
+  box-shadow: 0 2px 16px rgba(78, 52, 46, 0.06);
+}
+
+/* ===== Shop Card (商店/仓库卡片) ===== */
+.shop-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(93, 64, 55, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+}
+.shop-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(93, 64, 55, 0.15);
+}
+.shop-card .img-area {
+  height: 140px;
+  background: linear-gradient(135deg, #FFF8E1 0%, #E8F5E9 50%, #FFECB3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.shop-card .img-area::before {
   content: '';
   position: absolute;
-  bottom: -2px; left: 20%; right: 20%;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #66bb6a, #43a047);
-  transform: scaleX(0);
-  transition: transform 0.25s ease;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+  top: -50%;
+  left: -50%;
 }
-.tab-btn.active::after { transform: scaleX(1); }
+.shop-card .info-area {
+  padding: 18px;
+  background: white;
+}
 
-/* ===== Button base ===== */
+/* ===== Price Tag ===== */
+.price-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #FFD54F 0%, #FFB300 100%);
+  color: var(--soil);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(255, 179, 0, 0.3);
+}
+
+/* ===== Rarity Pills ===== */
+.rarity-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.rarity-pill-N   { background: #F5F5F5; color: #757575; border: 1px solid #E0E0E0; }
+.rarity-pill-R   { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
+.rarity-pill-SR  { background: #F3E5F5; color: #7B1FA2; border: 1px solid #CE93D8; }
+.rarity-pill-SSR { background: #FFF8E1; color: #E65100; border: 1px solid #FFB300; }
+.rarity-pill-UR  { background: #FFEBEE; color: #C62828; border: 1px solid #EF5350; }
+
+/* Stage badges */
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.stage-SEED      { background: #FFF8E1; color: #E65100; }
+.stage-SEEDLING  { background: #E8F5E9; color: #2E7D32; }
+.stage-GROWING   { background: #E3F2FD; color: #1565C0; }
+.stage-MATURE    { background: #F3E5F5; color: #7B1FA2; }
+.stage-BLOOMING  { background: #FCE4EC; color: #C62828; }
+.stage-RECOVERING{ background: #FBE9E7; color: #BF360C; }
+
+/* ===== Buttons ===== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 7px 16px;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.2);
   border: none;
   outline: none;
   white-space: nowrap;
   letter-spacing: 0.01em;
 }
 .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+
 .btn-primary {
-  background: linear-gradient(135deg, #43a047, #66bb6a);
+  background: linear-gradient(135deg, var(--sky-primary), var(--grass-primary));
   color: white;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+  box-shadow: 0 4px 16px rgba(93, 185, 232, 0.3);
 }
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2e7d32, #4caf50);
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(93, 185, 232, 0.45);
+  transform: translateY(-2px);
 }
+
+.btn-gold {
+  background: linear-gradient(135deg, #FFD54F, #FFB300);
+  color: var(--soil);
+  box-shadow: 0 3px 12px rgba(255, 179, 0, 0.3);
+  font-weight: 800;
+}
+.btn-gold:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(255, 179, 0, 0.45);
+  transform: translateY(-2px);
+}
+
 .btn-secondary {
-  background: #f5f8f2;
+  background: rgba(255, 255, 255, 0.7);
   color: var(--text-secondary);
-  border: 1px solid #d4e8c5;
+  border: 1px solid rgba(141, 110, 99, 0.15);
 }
 .btn-secondary:hover:not(:disabled) {
-  background: #eef5e8;
-  border-color: #a5d6a7;
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(141, 110, 99, 0.25);
   color: var(--text-primary);
   transform: translateY(-1px);
 }
-.btn-success {
-  background: linear-gradient(135deg, #43a047, #66bb6a);
-  color: white;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
-}
-.btn-success:hover:not(:disabled) {
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
-  transform: translateY(-1px);
-}
-.btn-danger {
-  background: linear-gradient(135deg, #e53935, #ef5350);
-  color: white;
-  box-shadow: 0 2px 8px rgba(229, 57, 53, 0.25);
-}
-.btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 8px; }
-.btn-xs { padding: 2px 7px; font-size: 10px; border-radius: 6px; }
 
-/* ===== Input ===== */
-.input-field {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #f5f8f2;
-  border: 1px solid #d4e8c5;
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
+.btn-sm  { padding: 5px 12px; font-size: 12px; border-radius: 10px; }
+.btn-xs  { padding: 2px 8px;  font-size: 10px; border-radius: 8px; }
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
 }
-.input-field::placeholder { color: #b4c8a8; }
-.input-field:focus {
-  border-color: #66bb6a;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(141, 110, 99, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(141, 110, 99, 0.25);
 }
 
-/* ===== Stage badge ===== */
-.stage-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.stage-SEED      { background: #fff8e1; color: #e65100; }
-.stage-SEEDLING  { background: #e8f5e9; color: #2e7d32; }
-.stage-GROWING   { background: #e3f2fd; color: #1565c0; }
-.stage-MATURE    { background: #f3e5f5; color: #7b1fa2; }
-.stage-BLOOMING  { background: #fce4ec; color: #c62828; }
-.stage-RECOVERING{ background: #fbe9e7; color: #bf360c; }
-
-/* ===== Toolbar enhancement ===== */
-.toolbar-glass {
-  background: rgba(250, 247, 242, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid #dce8d0;
-  box-shadow: 0 -2px 20px rgba(46, 61, 35, 0.06);
-}
-
-/* ===== Page header ===== */
-.page-header {
-  background: rgba(250, 247, 242, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid #dce8d0;
-  box-shadow: 0 2px 12px rgba(46, 61, 35, 0.04);
-}
-
-/* ===== Embellishments ===== */
-.leaf-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--sage-300);
-  font-size: 12px;
-}
-.leaf-divider::before,
-.leaf-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--sage-200), transparent);
-}
-
-/* Empty state */
+/* ===== Empty State ===== */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -321,17 +422,59 @@ body::before {
   margin-bottom: 16px;
   animation: float-leaf 4s ease-in-out infinite;
 }
+.empty-state-title {
+  color: var(--text-primary);
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
 .empty-state-text {
   color: var(--text-secondary);
   font-size: 14px;
-  max-width: 300px;
+  max-width: 320px;
   line-height: 1.7;
 }
 
-/* Skeleton loading for cards */
+/* ===== Skeleton Loading ===== */
 .skeleton {
-  background: linear-gradient(90deg, #f0f4e8 25%, #e8f0e0 50%, #f0f4e8 75%);
+  background: linear-gradient(90deg, #F5F5F5 25%, #EFEFEF 50%, #F5F5F5 75%);
   background-size: 400% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: 10px;
+}
+
+/* ===== Divider ===== */
+.leaf-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #A5C9A5;
+  font-size: 12px;
+}
+.leaf-divider::before,
+.leaf-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 179, 66, 0.2), transparent);
+}
+
+/* ===== Form Inputs ===== */
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(141, 110, 99, 0.15);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.input-field::placeholder { color: #B4C8A8; }
+.input-field:focus {
+  border-color: var(--sky-primary);
+  box-shadow: 0 0 0 3px rgba(93, 185, 232, 0.15);
+  background: rgba(255, 255, 255, 0.95);
 }
