@@ -1,11 +1,11 @@
-// 花语嫁接师 — Phase 1 Schema
+// 花语嫁接师 — Phase 1.5 Schema
 // ================================
-// 设计原则：
-// - Stage 统一大写（SEED/SEEDLING/GROWING/MATURE/BLOOMING/RECOVERING）
-// - 亲本消耗：嫁接成功后删除亲本 Flower 记录，释放 GardenSlot
-// - 基础花 vs 融合花：parentAId===null 且 isShopSeed===true 为基础花；parentAId!==null 为融合花
-// - Phase 1 游客模式：email 可空，不校验唯一性
-// - TransactionLog 记录所有金币/钻石变动
+// Phase 1.5 新增：
+// - Flower.location, sellPrice, factorScore, growthImageSeed/Url
+// - Flower.isFoundation, stabilityProgress, stabilityTargetId, foundationName
+// - Seed.growthImages, isFoundationSeed, seedType, parentFlowerId, totalSold
+// - User.title
+// - 新 TransactionLog type: REVENUE_SHARE, HARVEST_SELL
 
 generator client {
   provider = "prisma-client-js"
@@ -22,12 +22,13 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   name      String
-  email     String?  // Phase 1 可空，游客模式
-  unionId   String?  // Phase 1 预留，未来第三方登录
+  email     String?
+  unionId   String?
   gold      Int      @default(500)
   diamond   Int      @default(0)
   xp        Int      @default(0)
   level     Int      @default(1)
+  title     String?  // 称号（如"玫瑰育种家"）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -41,28 +42,43 @@ model User {
 // 花
 // ========================
 model Flower {
-  id         String    @id @default(uuid())
-  ownerId    String
-  owner      User      @relation(fields: [ownerId], references: [id])
-  name       String?
-  parentAId  String?
-  parentBId  String?
-  rarity     String    // N / R / SR / SSR / UR
-  atoms      Json      // e.g. ["剑形叶","唇瓣卷曲"]
-  stage      String    @default("SEED") // SEED/SEEDLING/GROWING/MATURE/BLOOMING/RECOVERING
-  progress   Float     @default(0) // 0~100，按阈值自动切换 stage
-  imageUrl   String?
-  isShopSeed Boolean   @default(false) // true=基础花（源自商店种子）
-  isStable   Boolean   @default(false) // 是否奠基种（Phase 5）
-  consumedAt DateTime? // 嫁接成功后标记消耗时间（或直接删除记录）
+  id          String    @id @default(uuid())
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id])
+  name        String?
+  parentAId   String?
+  parentBId   String?
+  rarity      String    // N / R / SR / SSR / UR
+  atoms       Json      // [{ id, category, level, score, prompt_chinese, prompt_en }]
+  factorScore Int       @default(0) // 因子总积分
+  stage       String    @default("SEED")
+  progress    Float     @default(0)
+  imageUrl    String?
+  isShopSeed  Boolean   @default(false)
+
+  // Phase 1.5: 仓库制
+  location    String    @default("GARDEN") // GARDEN / WAREHOUSE
+  sellPrice   Int?      // 仓库出售价（入库时预计算）
+
+  // Phase 1.5: 性状稳定
+  isFoundation       Boolean  @default(false)
+  stabilityProgress  Int      @default(0)  // 0-10
+  stabilityTargetId  String?  // 被指定为母株的那株花的 id（如果是嫁接结果）
+  foundationName     String?
+
+  // Phase 1.5: 生长期图片
+  growthImageSeed    String?  // 指向 Seed 品种名（融合花取父本A的生长期图）
+  growthImageUrl     String?  // BLOOMING 的 SD 专属图
+
+  consumedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  // 关联
-  gardenSlot    GardenSlot?
+  gardenSlot GardenSlot?
 
   @@index([ownerId])
   @@index([ownerId, stage])
+  @@index([ownerId, location])
 }
 
 // ========================
@@ -72,8 +88,8 @@ model GardenSlot {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  position  Int      // 0~5，2行3列
-  flowerId  String?  @unique // 一个花只能在一个槽位
+  position  Int      // 0~5
+  flowerId  String?  @unique
   flower    Flower?  @relation(fields: [flowerId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,40 +99,55 @@ model GardenSlot {
 }
 
 // ========================
-// 种子（商店数据）
+// 种子（商店数据 + 背包）
 // ========================
 model Seed {
   id          String   @id @default(uuid())
-  name        String   @unique // 玫瑰/向日葵/百合/郁金香/蝴蝶兰
+  name        String   @unique
   description String   @default("")
-  emoji       String   @default("🌱") // 前端展示用
-  priceGold   Int      // 金币价格
-  atomLibrary Json     // 可选原子池 e.g. ["红花","重瓣","香气1"]
-  growTime    Int      @default(0) // Phase 3 自动生长时间（秒），Phase 1 手动推进故为 0
+  emoji       String   @default("🌱")
+  priceGold   Int
+  atomLibrary Json     // [{ atomId, guaranteed }]
+  growthImages Json?   // { seed: "url", seedling: "url", growing: "url", mature: "url", blooming: "url" }
+  growTime    Int      @default(0)
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+
+  // Phase 1.5: 奠基种商店
+  isFoundationSeed   Boolean  @default(false)
+  foundationFlowerId  String?
+  sellerId            String?
+  customPrice         Int?
+  revenueShare        Float    @default(0.8)
+
+  // Phase 1.5: 种子类型
+  seedType       String   @default("SYSTEM") // SYSTEM / FUSION_DROP / FOUNDATION / INHERIT
+  parentFlowerId  String?
+  totalSold       Int      @default(0)
+
+  createdAt DateTime @default(now())
 }
 
 // ========================
 // 嫁接日志
 // ========================
 model FusionLog {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  parentAId    String?
-  parentBId    String?
-  soil         String?  // HUMUS / SANDY / CLAY / LOAM
-  ritual       String?  // NONE / WHISTLE / SING / PRAY（Phase 1 预留）
-  success      Boolean
-  failType     String?  // NORMAL / GRAVE（仅失败时有值）
-  resultRarity String?  // 成功时有值
-  resultAtoms  Json     @default("[]")
-  resultFlowerId String? // 成功后关联的 Flower ID
-  isFirstTime  Boolean  @default(false) // 该组合+珍稀度首次触发
-  rewardGold   Int      @default(0)
-  rewardXp     Int      @default(0)
-  createdAt    DateTime @default(now())
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  parentAId      String?
+  parentBId      String?
+  soil           String?
+  ritual         String?
+  success        Boolean
+  failType       String?
+  resultRarity   String?
+  resultAtoms    Json     @default("[]")
+  resultFlowerId String?
+  factorScore    Int      @default(0) // Phase 1.5: 融合结果因子积分
+  isFirstTime    Boolean  @default(false)
+  rewardGold     Int      @default(0)
+  rewardXp       Int      @default(0)
+  createdAt      DateTime @default(now())
 
   @@index([userId])
   @@index([userId, parentAId, parentBId, resultRarity])
@@ -129,12 +160,12 @@ model TransactionLog {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  type      String   // BUY / FUSION_REWARD / SYSTEM / REFUND
-  currency  String   @default("GOLD") // GOLD / DIAMOND
-  amount    Int      // 正数=收入，负数=支出
-  balance   Int      // 变动后余额
-  reason    String?  // 描述
-  relatedId String?  // 关联对象 ID（如 seedId / flowerId）
+  type      String   // BUY / FUSION_REWARD / HARVEST_SELL / REVENUE_SHARE / SYSTEM / REFUND
+  currency  String   @default("GOLD")
+  amount    Int
+  balance   Int
+  reason    String?
+  relatedId String?
   createdAt DateTime @default(now())
 
   @@index([userId])

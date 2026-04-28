@@ -1,0 +1,47 @@
+# ============================================
+# 花语嫁接师 — 因子分类定义
+# ============================================
+# 每个 category 对应一个因子分类。
+# 添加新因子前，确保其 category 已在此文件中注册。
+#
+# 字段说明：
+#   label  - 人类可读的分类名称
+#   weight - 在 prompt 中的权重（暂未使用，预留）
+# ============================================
+
+categories:
+  petal_shape:
+    label: "花瓣形状"
+    weight: 1.0
+
+  petal_texture:
+    label: "花瓣质地"
+    weight: 1.0
+
+  petal_color:
+    label: "花瓣颜色"
+    weight: 1.0
+
+  leaf_shape:
+    label: "叶子形状"
+    weight: 1.0
+
+  stem_type:
+    label: "茎类型"
+    weight: 1.0
+
+  stamen:
+    label: "花蕊特征"
+    weight: 1.0
+
+  fragrance:
+    label: "香气"
+    weight: 1.0
+
+  size:
+    label: "花型大小"
+    weight: 1.0
+
+  special:
+    label: "特殊特征"
+    weight: 1.0

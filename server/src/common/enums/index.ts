@@ -1,30 +1,16 @@
 // ========================
-// Phase 1 全量枚举
+// Phase 1.5 枚举
 // ========================
+// Factor-related data moved to AtomLoaderService (RARITY_PROBABILITY_TABLE, LEVEL_SCORE).
+// This file keeps only core enums used across modules.
 
 export enum Rarity {
-  N = 'N',       // 普通 — 灰色
-  R = 'R',       // 稀有 — 蓝色
-  SR = 'SR',     // 超稀有 — 紫色
-  SSR = 'SSR',   // 极稀有 — 金色
-  UR = 'UR',     // 传说 — 红色
+  N = 'N',
+  R = 'R',
+  SR = 'SR',
+  SSR = 'SSR',
+  UR = 'UR',
 }
-
-export const RARITY_WEIGHTS: Record<Rarity, number> = {
-  [Rarity.N]: 5000,   // 50%
-  [Rarity.R]: 3000,   // 30%
-  [Rarity.SR]: 1500,  // 15%
-  [Rarity.SSR]: 400,  // 4%
-  [Rarity.UR]: 100,   // 1%
-};
-
-export const RARITY_COLORS: Record<Rarity, number> = {
-  [Rarity.N]: 0x808080,
-  [Rarity.R]: 0x4488ff,
-  [Rarity.SR]: 0xaa44ff,
-  [Rarity.SSR]: 0xffaa00,
-  [Rarity.UR]: 0xff3333,
-};
 
 export enum Stage {
   SEED = 'SEED',
@@ -35,17 +21,6 @@ export enum Stage {
   RECOVERING = 'RECOVERING',
 }
 
-export const STAGE_THRESHOLDS: { stage: Stage; min: number; max: number }[] = [
-  { stage: Stage.SEED, min: 0, max: 0 },
-  { stage: Stage.SEEDLING, min: 1, max: 29 },
-  { stage: Stage.GROWING, min: 30, max: 69 },
-  { stage: Stage.MATURE, min: 70, max: 99 },
-  { stage: Stage.BLOOMING, min: 100, max: 100 },
-];
-
-/**
- * 根据 progress 值返回当前阶段
- */
 export function getStageFromProgress(progress: number): Stage {
   if (progress <= 0) return Stage.SEED;
   if (progress < 30) return Stage.SEEDLING;
@@ -54,11 +29,16 @@ export function getStageFromProgress(progress: number): Stage {
   return Stage.BLOOMING;
 }
 
+export enum FlowerLocation {
+  GARDEN = 'GARDEN',
+  WAREHOUSE = 'WAREHOUSE',
+}
+
 export enum SoilType {
-  HUMUS = 'HUMUS',     // 腐殖土 — 无成功率加成，价值+15%
-  SANDY = 'SANDY',     // 沙土 — 成功率+5%，价值-5%
-  CLAY = 'CLAY',       // 粘土 — 成功率+10%，生长时间+50%
-  LOAM = 'LOAM',       // 壤土 — 无加成无减成
+  HUMUS = 'HUMUS',
+  SANDY = 'SANDY',
+  CLAY = 'CLAY',
+  LOAM = 'LOAM',
 }
 
 export const SOIL_MODIFIERS: Record<
@@ -72,21 +52,17 @@ export const SOIL_MODIFIERS: Record<
 };
 
 export enum FailType {
-  NORMAL = 'NORMAL',   // 普通失败：亲本保留
-  GRAVE = 'GRAVE',     // 大失败：亲本A → RECOVERING
+  NORMAL = 'NORMAL',
+  GRAVE = 'GRAVE',
 }
 
 export enum TransactionType {
   BUY = 'BUY',
   FUSION_REWARD = 'FUSION_REWARD',
-  HARVEST = 'HARVEST',
+  HARVEST_SELL = 'HARVEST_SELL',
+  REVENUE_SHARE = 'REVENUE_SHARE',
   SYSTEM = 'SYSTEM',
   REFUND = 'REFUND',
-}
-
-export enum CurrencyType {
-  GOLD = 'GOLD',
-  DIAMOND = 'DIAMOND',
 }
 
 export enum RitualType {
@@ -97,22 +73,31 @@ export enum RitualType {
 }
 
 // ========================
-// 收获奖励配置
+// 收获 XP 奖励（Phase 1.5: 仓库制，收获只给 XP 不给金币）
 // ========================
 
-export const HARVEST_REWARDS: Record<
-  Rarity,
-  { gold: number; xp: number }
-> = {
-  [Rarity.N]: { gold: 80, xp: 15 },
-  [Rarity.R]: { gold: 150, xp: 30 },
-  [Rarity.SR]: { gold: 300, xp: 60 },
-  [Rarity.SSR]: { gold: 600, xp: 150 },
-  [Rarity.UR]: { gold: 1200, xp: 300 },
+export const HARVEST_XP_REWARDS: Record<Rarity, number> = {
+  [Rarity.N]: 15,
+  [Rarity.R]: 30,
+  [Rarity.SR]: 60,
+  [Rarity.SSR]: 150,
+  [Rarity.UR]: 300,
 };
 
 // ========================
-// Fusion 奖励配置
+// 仓库出售稀有度乘区
+// ========================
+
+export const RARITY_SELL_MULTIPLIER: Record<Rarity, number> = {
+  [Rarity.N]: 1.0,
+  [Rarity.R]: 1.5,
+  [Rarity.SR]: 2.5,
+  [Rarity.SSR]: 5.0,
+  [Rarity.UR]: 10.0,
+};
+
+// ========================
+// Fusion 首次奖励（Phase 1 残留，Phase 1.5 融合成功仍给此奖励）
 // ========================
 
 export const FUSION_REWARDS: Record<

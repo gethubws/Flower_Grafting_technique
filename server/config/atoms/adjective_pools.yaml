@@ -1,0 +1,81 @@
+# ============================================
+# 稀有形容词池
+# ============================================
+# 当稀有度确定为 R+ 时，从对应池子随机抽取 1 个形容词因子。
+# N 稀有度不抽取。
+# 形容词因子 score=0（不增加积分，稀有度已体现价值）。
+# ============================================
+
+pools:
+  R:
+    - id: "微光"
+      prompt_chinese: "微微发光的"
+      prompt_en: "slightly glowing"
+      level: R
+      score: 0
+    - id: "如玉"
+      prompt_chinese: "玉质感的"
+      prompt_en: "jade-like"
+      level: R
+      score: 0
+    - id: "星斑"
+      prompt_chinese: "带星辰斑点的"
+      prompt_en: "with starlike speckles"
+      level: R
+      score: 0
+    - id: "晨露"
+      prompt_chinese: "常带晨露的"
+      prompt_en: "always dewdrop-adorned"
+      level: R
+      score: 0
+
+  SR:
+    - id: "流萤"
+      prompt_chinese: "流萤环绕的"
+      prompt_en: "surrounded by firefly-like motes"
+      level: SR
+      score: 0
+    - id: "月辉"
+      prompt_chinese: "月辉笼罩的"
+      prompt_en: "bathed in moonlight glow"
+      level: SR
+      score: 0
+    - id: "幻影"
+      prompt_chinese: "略带幻影的"
+      prompt_en: "with subtle mirage effect"
+      level: SR
+      score: 0
+
+  SSR:
+    - id: "星环"
+      prompt_chinese: "笼罩星环的"
+      prompt_en: "encircled by a stellar ring"
+      level: SSR
+      score: 0
+    - id: "天火"
+      prompt_chinese: "燃着天火的"
+      prompt_en: "ablaze with celestial fire"
+      level: SSR
+      score: 0
+    - id: "极光"
+      prompt_chinese: "极光流转的"
+      prompt_en: "aurora flowing through"
+      level: SSR
+      score: 0
+
+  UR:
+    - id: "创世"
+      prompt_chinese: "创世之"
+      prompt_en: "primordial"
+      level: UR
+      score: 0
+    - id: "永恒"
+      prompt_chinese: "永恒的"
+      prompt_en: "eternal"
+      level: UR
+      score: 0
+    - id: "天启"
+      prompt_chinese: "天启之"
+      prompt_en: "apocalyptic"
+      level: UR
+      score: 0

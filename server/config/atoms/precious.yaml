@@ -1,0 +1,39 @@
+# ============================================
+# 珍贵因子 (SR) — 积分 10
+# ============================================
+
+atoms:
+  - id: "异色"
+    category: petal_color
+    prompt_chinese: "罕见异色"
+    prompt_en: "rare exotic color"
+    level: SR
+    score: 10
+
+  - id: "荧光"
+    category: special
+    prompt_chinese: "淡荧光效果"
+    prompt_en: "subtle fluorescent glow"
+    level: SR
+    score: 10
+
+  - id: "金属光泽"
+    category: petal_texture
+    prompt_chinese: "金属光泽花瓣"
+    prompt_en: "metallic sheen petals"
+    level: SR
+    score: 10
+
+  - id: "双层花瓣"
+    category: petal_shape
+    prompt_chinese: "双层花瓣结构"
+    prompt_en: "double corolla structure"
+    level: SR
+    score: 10
+
+  - id: "流星纹"
+    category: petal_texture
+    prompt_chinese: "流星状斑纹"
+    prompt_en: "shooting star pattern"
+    level: SR
+    score: 10

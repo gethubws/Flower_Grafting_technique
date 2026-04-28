@@ -1,0 +1,39 @@
+# ============================================
+# 传奇因子 (UR) — 积分 50
+# ============================================
+
+atoms:
+  - id: "虹彩"
+    category: petal_color
+    prompt_chinese: "虹彩色光芒"
+    prompt_en: "iridescent rainbow radiance"
+    level: UR
+    score: 50
+
+  - id: "龙鳞瓣"
+    category: petal_texture
+    prompt_chinese: "龙鳞般的花瓣"
+    prompt_en: "dragon scale-like petals"
+    level: UR
+    score: 50
+
+  - id: "星空"
+    category: special
+    prompt_chinese: "内有星云流淌的花朵"
+    prompt_en: "flower with flowing nebula inside"
+    level: UR
+    score: 50
+
+  - id: "圣光"
+    category: special
+    prompt_chinese: "圣洁光芒包围"
+    prompt_en: "surrounded by holy light"
+    level: UR
+    score: 50
+
+  - id: "时幻"
+    category: special
+    prompt_chinese: "随时间变换形态"
+    prompt_en: "time-shifting appearance"
+    level: UR
+    score: 50

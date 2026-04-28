@@ -1,0 +1,46 @@
+# ============================================
+# 稀有因子 (R) — 积分 5
+# ============================================
+
+atoms:
+  - id: "光泽花瓣"
+    category: petal_texture
+    prompt_chinese: "珍珠般光泽的花瓣"
+    prompt_en: "pearl-like lustrous petals"
+    level: R
+    score: 5
+
+  - id: "渐变花色"
+    category: petal_color
+    prompt_chinese: "渐变色花瓣"
+    prompt_en: "gradient color petals"
+    level: R
+    score: 5
+
+  - id: "双色"
+    category: petal_color
+    prompt_chinese: "双色花瓣"
+    prompt_en: "bi-color petals"
+    level: R
+    score: 5
+
+  - id: "条纹"
+    category: petal_texture
+    prompt_chinese: "条纹纹理花瓣"
+    prompt_en: "striped textured petals"
+    level: R
+    score: 5
+
+  - id: "斑点"
+    category: petal_texture
+    prompt_chinese: "斑点花瓣"
+    prompt_en: "spotted petals"
+    level: R
+    score: 5
+
+  - id: "复瓣"
+    category: petal_shape
+    prompt_chinese: "复瓣花朵"
+    prompt_en: "multi-layered flower"
+    level: R
+    score: 5

@@ -12,6 +12,7 @@ import { ShopModule } from './modules/shop/shop.module';
 import { GardenModule } from './modules/garden/garden.module';
 import { FusionModule } from './modules/fusion/fusion.module';
 import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
+import { AtomModule } from './modules/atom/atom.module';
 
 @Module({
   imports: [
@@ -31,6 +32,9 @@ import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
     PrismaModule,
     RedisModule,
     MinioModule,
+
+    // 核心系统
+    AtomModule,
 
     // 业务模块
     UserModule,

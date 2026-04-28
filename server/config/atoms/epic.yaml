@@ -1,0 +1,32 @@
+# ============================================
+# 史诗因子 (SSR) — 积分 20
+# ============================================
+
+atoms:
+  - id: "水晶瓣"
+    category: petal_texture
+    prompt_chinese: "水晶般透明的花瓣"
+    prompt_en: "crystal clear translucent petals"
+    level: SSR
+    score: 20
+
+  - id: "星辉"
+    category: special
+    prompt_chinese: "星光闪烁效果"
+    prompt_en: "starlight shimmering effect"
+    level: SSR
+    score: 20
+
+  - id: "三色渐变"
+    category: petal_color
+    prompt_chinese: "三色渐变花瓣"
+    prompt_en: "tri-color gradient petals"
+    level: SSR
+    score: 20
+
+  - id: "浮空"
+    category: special
+    prompt_chinese: "悬浮于空的姿态"
+    prompt_en: "floating in air posture"
+    level: SSR
+    score: 20

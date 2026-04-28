@@ -1,0 +1,275 @@
+# ============================================
+# 普通因子 (N) — 积分 1
+# ============================================
+# 字段说明：
+#   id             - 全局唯一标识符
+#   category       - 所属分类（必须在 categories.yaml 中已定义）
+#   prompt_chinese - 中文 SD prompt 片段
+#   prompt_en      - 英文 SD prompt 片段
+#   level          - 因子稀有度: N
+#   score          - 积分值: 1
+#   incompatible   - 互斥因子 id 列表（可选）
+#   description    - 人类可读说明（可选）
+# ============================================
+
+atoms:
+  # === 花瓣形状 ===
+  - id: "圆瓣"
+    category: petal_shape
+    prompt_chinese: "圆形花瓣"
+    prompt_en: "round petals"
+    level: N
+    score: 1
+
+  - id: "尖瓣"
+    category: petal_shape
+    prompt_chinese: "尖锐花瓣"
+    prompt_en: "pointed petals"
+    level: N
+    score: 1
+
+  - id: "重瓣"
+    category: petal_shape
+    prompt_chinese: "重瓣花"
+    prompt_en: "double-layered petals"
+    level: N
+    score: 1
+
+  - id: "单瓣"
+    category: petal_shape
+    prompt_chinese: "单瓣花"
+    prompt_en: "single-layered petals"
+    level: N
+    score: 1
+
+  - id: "波浪瓣"
+    category: petal_shape
+    prompt_chinese: "波浪边花瓣"
+    prompt_en: "wavy-edged petals"
+    level: N
+    score: 1
+
+  - id: "锯齿瓣"
+    category: petal_shape
+    prompt_chinese: "锯齿边花瓣"
+    prompt_en: "serrated-edged petals"
+    level: N
+    score: 1
+
+  - id: "杯状"
+    category: petal_shape
+    prompt_chinese: "杯状花冠"
+    prompt_en: "cup-shaped corolla"
+    level: N
+    score: 1
+
+  - id: "蝶形"
+    category: petal_shape
+    prompt_chinese: "蝶形花瓣"
+    prompt_en: "butterfly-shaped petals"
+    level: N
+    score: 1
+
+  # === 花瓣质地 ===
+  - id: "光滑花瓣"
+    category: petal_texture
+    prompt_chinese: "光滑质感花瓣"
+    prompt_en: "smooth glossy petals"
+    level: N
+    score: 1
+
+  - id: "绒面"
+    category: petal_texture
+    prompt_chinese: "天鹅绒质感花瓣"
+    prompt_en: "velvety matte petals"
+    level: N
+    score: 1
+
+  - id: "薄瓣"
+    category: petal_texture
+    prompt_chinese: "薄如蝉翼的花瓣"
+    prompt_en: "delicate thin translucent petals"
+    level: N
+    score: 1
+
+  # === 花瓣颜色 ===
+  - id: "红花"
+    category: petal_color
+    prompt_chinese: "红色"
+    prompt_en: "red"
+    level: N
+    score: 1
+
+  - id: "黄花"
+    category: petal_color
+    prompt_chinese: "黄色"
+    prompt_en: "yellow"
+    level: N
+    score: 1
+
+  - id: "白花"
+    category: petal_color
+    prompt_chinese: "白色"
+    prompt_en: "white"
+    level: N
+    score: 1
+
+  - id: "蓝花"
+    category: petal_color
+    prompt_chinese: "蓝色"
+    prompt_en: "blue"
+    level: N
+    score: 1
+
+  - id: "粉花"
+    category: petal_color
+    prompt_chinese: "粉色"
+    prompt_en: "pink"
+    level: N
+    score: 1
+
+  - id: "紫花"
+    category: petal_color
+    prompt_chinese: "紫色"
+    prompt_en: "purple"
+    level: N
+    score: 1
+
+  - id: "橙花"
+    category: petal_color
+    prompt_chinese: "橙色"
+    prompt_en: "orange"
+    level: N
+    score: 1
+
+  # === 叶子形状 ===
+  - id: "剑形叶"
+    category: leaf_shape
+    prompt_chinese: "剑形细长叶"
+    prompt_en: "sword-shaped slender leaves"
+    level: N
+    score: 1
+
+  - id: "心形叶"
+    category: leaf_shape
+    prompt_chinese: "心形叶"
+    prompt_en: "heart-shaped leaves"
+    level: N
+    score: 1
+
+  - id: "宽叶"
+    category: leaf_shape
+    prompt_chinese: "宽大叶片"
+    prompt_en: "broad large leaves"
+    level: N
+    score: 1
+
+  - id: "细叶"
+    category: leaf_shape
+    prompt_chinese: "细小叶片"
+    prompt_en: "small thin leaves"
+    level: N
+    score: 1
+
+  # === 茎类型 ===
+  - id: "直立茎"
+    category: stem_type
+    prompt_chinese: "直立挺拔的茎"
+    prompt_en: "straight upright stem"
+    level: N
+    score: 1
+
+  - id: "蔓生茎"
+    category: stem_type
+    prompt_chinese: "蔓生攀援的茎"
+    prompt_en: "climbing vine stem"
+    level: N
+    score: 1
+
+  - id: "尖刺茎"
+    category: stem_type
+    prompt_chinese: "带刺的茎"
+    prompt_en: "thorny stem"
+    level: N
+    score: 1
+
+  - id: "细茎"
+    category: stem_type
+    prompt_chinese: "纤细的茎"
+    prompt_en: "slender delicate stem"
+    level: N
+    score: 1
+
+  # === 花蕊 ===
+  - id: "黄花蕊"
+    category: stamen
+    prompt_chinese: "黄色花蕊"
+    prompt_en: "yellow stamen"
+    level: N
+    score: 1
+
+  - id: "棕色蕊"
+    category: stamen
+    prompt_chinese: "棕色花蕊"
+    prompt_en: "brown stamen"
+    level: N
+    score: 1
+
+  - id: "突出蕊"
+    category: stamen
+    prompt_chinese: "突出外露的花蕊"
+    prompt_en: "prominent exposed stamen"
+    level: N
+    score: 1
+
+  # === 香气 ===
+  - id: "清香"
+    category: fragrance
+    prompt_chinese: "淡雅清香"
+    prompt_en: "delicate light fragrance"
+    level: N
+    score: 1
+
+  - id: "浓香"
+    category: fragrance
+    prompt_chinese: "浓郁芳香"
+    prompt_en: "rich strong fragrance"
+    level: N
+    score: 1
+
+  - id: "甜香"
+    category: fragrance
+    prompt_chinese: "甜美香气"
+    prompt_en: "sweet fragrance"
+    level: N
+    score: 1
+
+  # === 大小 ===
+  - id: "大花"
+    category: size
+    prompt_chinese: "大型花朵"
+    prompt_en: "large flower"
+    level: N
+    score: 1
+
+  - id: "小花"
+    category: size
+    prompt_chinese: "小型花朵"
+    prompt_en: "small flower"
+    level: N
+    score: 1
+
+  # === 特殊 ===
+  - id: "向阳"
+    category: special
+    prompt_chinese: "向阳生长"
+    prompt_en: "heliotropic"
+    level: N
+    score: 1
+
+  - id: "夜开"
+    category: special
+    prompt_chinese: "夜间开放"
+    prompt_en: "nocturnal blooming"
+    level: N
+    score: 1

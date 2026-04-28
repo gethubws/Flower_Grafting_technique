@@ -14,4 +14,9 @@ export class FusionRequestDto {
   @IsOptional()
   @IsEnum(RitualType)
   ritual?: RitualType;
+
+  /** Phase 1.5: 性状稳定工程的母株 ID */
+  @IsOptional()
+  @IsUUID('4')
+  stabilityTargetId?: string;
 }

@@ -4,7 +4,14 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma/prisma.service';
-import { Stage, getStageFromProgress, HARVEST_REWARDS, TransactionType } from '../../common/enums';
+import {
+  Stage,
+  getStageFromProgress,
+  HARVEST_XP_REWARDS,
+  RARITY_SELL_MULTIPLIER,
+  TransactionType,
+  Rarity,
+} from '../../common/enums';
 
 @Injectable()
 export class GardenService {
@@ -16,21 +23,16 @@ export class GardenService {
   async getGarden(userId: string) {
     const slots = await this.prisma.gardenSlot.findMany({
       where: { userId },
-      include: {
-        flower: true,
-      },
+      include: { flower: true },
       orderBy: { position: 'asc' },
     });
 
-    // 过滤掉已消耗的花（consumedAt 非空 = 已用于嫁接）
     for (const slot of slots) {
       if (slot.flower?.consumedAt) {
         slot.flower = null;
-        // 注意：这里不在数据库层面清理 slot，留给 Fusion 事务处理
       }
     }
 
-    // 确保始终返回 6 个槽位（即使某些槽位无记录）
     const result = Array.from({ length: 6 }, (_, i) => {
       const slot = slots.find((s) => s.position === i);
       return (
@@ -48,11 +50,9 @@ export class GardenService {
   }
 
   /**
-   * 手动种植：将 SEED 阶段的 Flower 放入指定槽位，stage → SEEDLING
-   * position 必填 — 用户通过工具栏选择种子后点击花盆来种植
+   * 手动种植
    */
   async plant(userId: string, flowerId: string, position: number) {
-    // 校验槽位范围
     const flower = await this.prisma.flower.findUnique({
       where: { id: flowerId },
     });
@@ -60,16 +60,12 @@ export class GardenService {
       throw new NotFoundException('Flower not found');
     }
     if (flower.stage !== 'SEED') {
-      throw new BadRequestException(
-        `Flower must be in SEED stage, got ${flower.stage}`,
-      );
+      throw new BadRequestException(`Flower must be in SEED stage, got ${flower.stage}`);
     }
-
     if (position < 0 || position > 5) {
       throw new BadRequestException('Invalid slot position');
     }
 
-    // 校验槽位存在且为空
     const existingSlot = await this.prisma.gardenSlot.findUnique({
       where: { userId_position: { userId, position } },
     });
@@ -80,7 +76,6 @@ export class GardenService {
       throw new BadRequestException(`Slot ${position} is already occupied`);
     }
 
-    // 原子操作：更新槽位绑定 + 推进 Flower 到 SEEDLING
     const [updatedFlower] = await this.prisma.$transaction([
       this.prisma.flower.update({
         where: { id: flowerId },
@@ -92,32 +87,25 @@ export class GardenService {
       }),
     ]);
 
-    return {
-      slot: position,
-      flower: updatedFlower,
-    };
+    return { slot: position, flower: updatedFlower };
   }
 
   /**
-   * 获取用户所有未种植的 SEED 阶段花（种子库存）
+   * 种子库存
    */
   async getSeedInventory(userId: string) {
-    // 找出所有 SEED 阶段且不在任何 GardenSlot 中的花
     const allSeeds = await this.prisma.flower.findMany({
       where: { ownerId: userId, stage: 'SEED', consumedAt: null },
       orderBy: { createdAt: 'asc' },
     });
 
-    // 筛选掉已在槽位中的
     const slots = await this.prisma.gardenSlot.findMany({
       where: { userId, flowerId: { not: null } },
       select: { flowerId: true },
     });
     const plantedIds = new Set(slots.map((s) => s.flowerId!).filter(Boolean));
-
     const unplanted = allSeeds.filter((s) => !plantedIds.has(s.id));
 
-    // 按名称分组（堆叠）
     const grouped: Record<string, { name: string; rarity: string; count: number; sampleId: string }> = {};
     for (const seed of unplanted) {
       const key = seed.name || '(未知)';
@@ -131,7 +119,9 @@ export class GardenService {
   }
 
   /**
-   * 收获：BLOOMING 阶段花 → 奖励金币/经验 → 消耗花 + 释放槽位
+   * Phase 1.5 收获（仓库制）：
+   * BLOOMING → 给 XP + 必掉种子 → 花移入 WAREHOUSE → 释放槽位
+   * 不再直接给金币。
    */
   async harvest(userId: string, flowerId: string) {
     const flower = await this.prisma.flower.findUnique({
@@ -141,54 +131,79 @@ export class GardenService {
       throw new NotFoundException('Flower not found');
     }
     if (flower.stage !== 'BLOOMING') {
-      throw new BadRequestException(
-        `Flower must be in BLOOMING stage to harvest, got ${flower.stage}`,
-      );
+      throw new BadRequestException(`Flower must be BLOOMING, got ${flower.stage}`);
     }
 
-    const reward =
-      HARVEST_REWARDS[flower.rarity as keyof typeof HARVEST_REWARDS];
+    const rarity = flower.rarity as Rarity;
+    const xpReward = HARVEST_XP_REWARDS[rarity] || 15;
 
-    // 事务标记 Flower 消耗 + 释放槽位
-    await this.prisma.flower.update({
-      where: { id: flowerId },
-      data: { consumedAt: new Date() },
+    return await this.prisma.$transaction(async (tx) => {
+      // 1. 发放 XP
+      await tx.user.update({
+        where: { id: userId },
+        data: { xp: { increment: xpReward } },
+      });
+
+      // 2. 必掉种子
+      await tx.seed.create({
+        data: {
+          name: flower.name || `${rarity}花种子`,
+          description: `从「${flower.name}」收获的种子`,
+          emoji: '🌱',
+          priceGold: 0,
+          atomLibrary: flower.atoms as any,
+          isActive: true,
+          seedType: flower.isShopSeed ? 'INHERIT' : 'FUSION_DROP',
+          parentFlowerId: flower.id,
+        },
+      });
+
+      // 3. 预计算售价（出售时用）
+      let sellPrice = 0;
+      if (flower.isShopSeed) {
+        // 基础花：种子原价 × 1.5
+        const seed = await tx.seed.findFirst({ where: { name: flower.name?.replace('种子', '') || '' } });
+        sellPrice = Math.floor((seed?.priceGold || 100) * 1.5);
+      } else {
+        // 融合花: 稀有度乘区 × (亲本A售价 + 亲本B售价)
+        const multiplier = RARITY_SELL_MULTIPLIER[rarity];
+        const [parentA, parentB] = await Promise.all([
+          flower.parentAId ? tx.flower.findUnique({ where: { id: flower.parentAId } }) : null,
+          flower.parentBId ? tx.flower.findUnique({ where: { id: flower.parentBId } }) : null,
+        ]);
+        const baseA = parentA?.sellPrice || parentA ? 100 : 0;
+        const baseB = parentB?.sellPrice || parentB ? 100 : 0;
+        sellPrice = Math.floor(multiplier * (baseA + baseB));
+      }
+
+      // 4. 花移入仓库
+      await tx.flower.update({
+        where: { id: flowerId },
+        data: {
+          location: 'WAREHOUSE',
+          sellPrice,
+        },
+      });
+
+      // 5. 释放槽位
+      await tx.gardenSlot.updateMany({
+        where: { flowerId },
+        data: { flowerId: null },
+      });
+
+      return {
+        flowerId,
+        flowerName: flower.name,
+        rarity,
+        xpReward,
+        sellPrice,
+        seedDropped: true,
+      };
     });
-
-    await this.prisma.gardenSlot.updateMany({
-      where: { flowerId },
-      data: { flowerId: null },
-    });
-
-    // 金币 + 经验
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { gold: { increment: reward.gold }, xp: { increment: reward.xp } },
-    });
-
-    // 交易日志
-    await this.prisma.transactionLog.create({
-      data: {
-        userId,
-        type: 'HARVEST',
-        currency: 'GOLD',
-        amount: reward.gold,
-        balance: 0,
-        reason: `Harvest ${flower.rarity} flower: ${flower.name}`,
-        relatedId: flowerId,
-      },
-    });
-
-    return {
-      flowerId,
-      flowerName: flower.name,
-      rarity: flower.rarity,
-      reward,
-    };
   }
 
   /**
-   * 手动推进生长：progress += amount，按阈值自动切换 stage
+   * 手动推进生长
    */
   async advanceGrowth(userId: string, flowerId: string, amount = 30) {
     const flower = await this.prisma.flower.findUnique({
@@ -198,11 +213,7 @@ export class GardenService {
       throw new NotFoundException('Flower not found');
     }
 
-    const fusableStages: Stage[] = [
-      Stage.SEEDLING,
-      Stage.GROWING,
-      Stage.MATURE,
-    ];
+    const fusableStages: Stage[] = [Stage.SEEDLING, Stage.GROWING, Stage.MATURE];
     if (!fusableStages.includes(flower.stage as Stage)) {
       throw new BadRequestException(
         `Cannot grow flower in ${flower.stage} stage. Must be SEEDLING/GROWING/MATURE.`,

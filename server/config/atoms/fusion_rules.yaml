@@ -1,0 +1,83 @@
+# ============================================
+# 矛盾融合规则
+# ============================================
+# 规则按 priority 降序匹配，每条只触发一次。
+# condition.type:
+#   color_count    - 某个分类的因子种类数达到阈值
+#   atom_present   - 指定 id 列表全部存在
+#   category_count - 某分类的因子数达到阈值
+# result.produce_atom 必须已在 atoms/*.yaml 中定义。
+# ============================================
+
+rules:
+  # === 颜色融合 ===
+  - name: "七彩→虹彩"
+    description: "当继承后累计携带7种不同颜色时触发"
+    priority: 100
+    condition:
+      type: color_count
+      min_count: 7
+      categories: [petal_color]
+    result:
+      replace_atoms: ["红花","黄花","白花","蓝花","粉花","紫花","橙花"]
+      produce_atom: "虹彩"
+      prompt_modifier: "虹彩色光芒流转于花瓣之间"
+
+  - name: "三色→渐变"
+    description: "携带3-6种不同颜色时产生渐变色"
+    priority: 90
+    condition:
+      type: color_count
+      min_count: 3
+      max_count: 6
+      categories: [petal_color]
+    result:
+      produce_atom: "渐变花色"
+      prompt_modifier: "渐变色花瓣自然过渡"
+
+  # === 形状融合 ===
+  - name: "重瓣+单瓣→复瓣"
+    description: "同时携带重瓣和单瓣因子时融合"
+    priority: 80
+    condition:
+      type: atom_present
+      atom_ids: ["重瓣","单瓣"]
+    result:
+      replace_atoms: ["重瓣","单瓣"]
+      produce_atom: "复瓣"
+      prompt_modifier: "complex layered petal structure"
+
+  - name: "杯状+蝶形→双层"
+    description: "杯状与蝶形共存产生双层结构"
+    priority: 80
+    condition:
+      type: atom_present
+      atom_ids: ["杯状","蝶形"]
+    result:
+      replace_atoms: ["杯状","蝶形"]
+      produce_atom: "双层花瓣"
+      prompt_modifier: "butterfly-shaped cup with double corolla layer"
+
+  # === 香气融合 ===
+  - name: "三香→荧光"
+    description: "累计3种及以上香气因子产生荧光"
+    priority: 70
+    condition:
+      type: category_count
+      min_count: 3
+      categories: [fragrance]
+    result:
+      produce_atom: "荧光"
+      prompt_modifier: "enchanting multi-layered fragrance with subtle glow"
+
+  # === 质地融合 ===
+  - name: "光滑+绒面→金属光泽"
+    description: "光滑与绒面共存产生金属光泽"
+    priority: 70
+    condition:
+      type: atom_present
+      atom_ids: ["光滑花瓣","绒面"]
+    result:
+      replace_atoms: ["光滑花瓣","绒面"]
+      produce_atom: "金属光泽"
+      prompt_modifier: "silky velvet finish with subtle metallic sheen"
