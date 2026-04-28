@@ -144,10 +144,11 @@ export class GardenService {
         data: { xp: { increment: xpReward } },
       });
 
-      // 2. 必掉种子
+      // 2. 必掉种子（名加4位hash防重名）
+      const seedSuffix = flower.id.slice(-4);
       await tx.seed.create({
         data: {
-          name: flower.name || `${rarity}花种子`,
+          name: `${flower.name || `${rarity}花种子`}_${seedSuffix}`,
           description: `从「${flower.name}」收获的种子`,
           emoji: '🌱',
           priceGold: 0,
