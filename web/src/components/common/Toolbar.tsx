@@ -4,18 +4,26 @@ interface ToolbarProps {
   activeTool: 'seed' | 'glove' | 'knife' | null;
   setActiveTool: (tool: 'seed' | 'glove' | 'knife' | null) => void;
   seedCount: number;
+  onOpenWarehouse?: () => void;
+  onOpenFoundation?: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ activeTool, setActiveTool, seedCount }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({
+  activeTool,
+  setActiveTool,
+  seedCount,
+  onOpenWarehouse,
+  onOpenFoundation,
+}) => {
   const btnClass = (tool: typeof activeTool) =>
-    `relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+    `relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
       activeTool === tool
         ? 'bg-white/10 border border-white/20 text-white shadow-[0_0_12px_rgba(255,255,255,0.15)]'
         : 'bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-white/15 hover:text-white'
     }`;
 
   return (
-    <div className="flex items-center justify-center gap-4 p-3 bg-[#0a0a1a]/90 backdrop-blur-md border-t border-white/5">
+    <div className="flex items-center justify-center gap-3 p-3 bg-[#0a0a1a]/90 backdrop-blur-md border-t border-white/5">
       {/* Seed Bag */}
       <button
         onClick={() => setActiveTool(activeTool === 'seed' ? null : 'seed')}
@@ -69,8 +77,33 @@ export const Toolbar: React.FC<ToolbarProps> = ({ activeTool, setActiveTool, see
         <span>嫁接刀</span>
       </button>
 
+      {/* Divider */}
+      <div className="w-px h-6 bg-white/5 mx-1" />
+
+      {/* Warehouse */}
+      {onOpenWarehouse && (
+        <button
+          onClick={onOpenWarehouse}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-amber-800/50 hover:text-amber-400 transition-all"
+        >
+          <span className="text-lg">🏚️</span>
+          <span>仓库</span>
+        </button>
+      )}
+
+      {/* Foundation */}
+      {onOpenFoundation && (
+        <button
+          onClick={onOpenFoundation}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[#1a1a2e]/70 border border-white/5 text-gray-400 hover:border-purple-800/50 hover:text-purple-400 transition-all"
+        >
+          <span className="text-lg">🧬</span>
+          <span>稳定工程</span>
+        </button>
+      )}
+
       {/* Hint */}
-      <span className="text-gray-700 text-xs ml-2">
+      <span className="text-gray-700 text-xs ml-1">
         {activeTool === 'seed' ? '选择种子 → 点花盆播种' :
          activeTool === 'glove' ? '点盛放花朵收获' :
          activeTool === 'knife' ? '选择两朵生长期花嫁接' :

@@ -3,8 +3,11 @@ import { useFusionStore } from '../../stores/fusion.store';
 
 export const FusionResultModal: React.FC = () => {
   const result = useFusionStore((s) => s.resultFlower);
+  const response = useFusionStore((s) => s.response);
   const setResult = useFusionStore((s) => s.setResult);
+  const setResponse = useFusionStore((s) => s.setResponse);
   const [visible, setVisible] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     if (result) setVisible(true);
@@ -24,10 +27,12 @@ export const FusionResultModal: React.FC = () => {
     UR: 'from-red-900/50 to-red-800/30 border-red-500',
   };
 
+  const close = () => { setVisible(false); setResult(null); setResponse(null); setShowDetails(false); };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setVisible(false); setResult(null); }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={close}>
       <div
-        className={`bg-gradient-to-b ${rarityBg[result.rarity] || rarityBg.N} border rounded-2xl p-6 w-80 text-center animate-fade-in shadow-2xl`}
+        className={`bg-gradient-to-b ${rarityBg[result.rarity] || rarityBg.N} border rounded-2xl p-6 w-80 max-h-[85vh] overflow-y-auto text-center animate-fade-in shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sparkle */}
@@ -38,6 +43,53 @@ export const FusionResultModal: React.FC = () => {
           {result.rarity} 级新花！
         </h2>
         <p className="text-gray-400 text-sm mb-4">融合成功</p>
+
+        {/* Gene stats (Phase 1.5) */}
+        {response && (
+          <div className="bg-black/20 rounded-lg p-3 mb-3 text-xs text-left">
+            <div className="flex justify-between text-gray-400 mb-1">
+              <span>🧬 基因继承</span>
+              <span className="text-white font-medium">{response.inheritedCount || 0} / {(response.inheritedCount || 0) + (response.droppedCount || 0)}</span>
+            </div>
+            {response.droppedCount ? (
+              <p className="text-red-400/70 mb-1">丢失 {response.droppedCount} 个因子</p>
+            ) : null}
+            {response.doubleCount ? (
+              <p className="text-amber-400/70 mb-1">🔁 多倍体 ×{response.doubleCount + 1}</p>
+            ) : null}
+            {(response.appliedRules || []).length > 0 && (
+              <div className="mt-1.5 pt-1.5 border-t border-white/5">
+                <span className="text-purple-400">✨ 融合触发：</span>
+                {response.appliedRules!.map((r, i) => (
+                  <span key={i} className="text-purple-300 ml-1">{r}</span>
+                ))}
+              </div>
+            )}
+            <div className="mt-1.5 pt-1.5 border-t border-white/5 flex justify-between">
+              <span className="text-gray-500">因子积分</span>
+              <span className="text-amber-400 font-bold">{response.factorScore || 0}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Stability result */}
+        {response?.stabilityResult && (
+          <div className={`rounded-lg p-2 mb-3 text-xs ${response.stabilityResult.similar ? 'bg-green-900/20 border border-green-700/30' : 'bg-red-900/20 border border-red-700/30'}`}>
+            {response.stabilityResult.similar ? (
+              <div>
+                <span className="text-green-400">✅ 性状相似 (差异{response.stabilityResult.diff})</span>
+                <div className="text-green-300 mt-0.5">
+                  进度 {response.stabilityResult.progress}/10
+                  {response.stabilityResult.becameFoundation && ' 🏆 奠基种认证！'}
+                </div>
+              </div>
+            ) : (
+              <span className="text-red-400">
+                ❌ {response.stabilityResult.reason === 'rarity_mismatch' ? '稀有度不一致' : `基因差异过大 (${response.stabilityResult.diff})`}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Reward */}
         <div className="flex justify-center gap-6 mb-4">
@@ -57,10 +109,31 @@ export const FusionResultModal: React.FC = () => {
           </div>
         )}
 
+        {/* Atoms preview (toggle) */}
+        {result.atoms.length > 0 && (
+          <div className="mb-3">
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-gray-500 text-xs hover:text-gray-300"
+            >
+              {showDetails ? '收起' : '查看'} {result.atoms.length} 个因子
+            </button>
+            {showDetails && (
+              <div className="flex flex-wrap gap-1 mt-1.5 justify-center">
+                {result.atoms.map((a: any, i: number) => (
+                  <span key={i} className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-xs">
+                    {typeof a === 'string' ? a : (a.id || a.prompt_chinese || '?')}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <p className="text-gray-600 text-xs mb-3">新花已种入花园，浇水到盛放即可收获</p>
 
         <button
-          onClick={() => { setVisible(false); setResult(null); }}
+          onClick={close}
           className="w-full py-2 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20 transition-colors"
         >
           知道了

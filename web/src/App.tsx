@@ -10,15 +10,16 @@ import { bridge, BridgeEvent } from './game/bridge';
 import { gardenApi } from './api/garden.api';
 import { fusionApi } from './api/fusion.api';
 import type { PotClickedPayload } from './game/bridge';
-import type { GroupedSeedItem, SoilType } from './types';
+import type { GroupedSeedItem, SoilType, FusionResponse } from './types';
 
 import { RegisterPanel } from './components/user/RegisterPanel';
 import { Toolbar } from './components/common/Toolbar';
-import { Button } from './components/common/Button';
 import { ShopPanel } from './components/shop/ShopPanel';
 import { GardenPanel } from './components/garden/GardenPanel';
 import { FusionPanel } from './components/fusion/FusionPanel';
 import { FusionResultModal } from './components/fusion/FusionResultModal';
+import { WarehousePanel } from './components/warehouse/WarehousePanel';
+import { FoundationPanel } from './components/foundation/FoundationPanel';
 
 type ToolType = 'seed' | 'glove' | 'knife' | null;
 type FusionStep = 'selectA' | 'selectB' | 'soil' | null;
@@ -44,10 +45,12 @@ const App: React.FC = () => {
   const [fusionSoil, setFusionSoil] = useState<SoilType>('LOAM');
   const [fusing, setFusing] = useState(false);
 
-  // Shop / Garden panel toggles
+  // Panel toggles
   const [showShop, setShowShop] = useState(false);
   const [showGardenPanel, setShowGardenPanel] = useState(true);
   const [showFusionPanel, setShowFusionPanel] = useState(false);
+  const [showWarehouse, setShowWarehouse] = useState(false);
+  const [showFoundation, setShowFoundation] = useState(false);
 
   const isLoggedIn = useUserStore((s) => s.isLoggedIn);
   const user = useUserStore((s) => s.user);
@@ -59,6 +62,7 @@ const App: React.FC = () => {
   const fusionQueue = useFusionStore((s) => s.fusionQueue);
   const resultFlower = useFusionStore((s) => s.resultFlower);
   const setResult = useFusionStore((s) => s.setResult);
+  const setFusionResponse = useFusionStore((s) => s.setResponse);
 
   const { loading } = useAuth();
   useSocket(user?.id || null);
@@ -123,7 +127,12 @@ const App: React.FC = () => {
         if (payload.flower.stage !== 'BLOOMING') return alert('只有盛放期的花才能收获');
         try {
           const result = await gardenApi.harvest(payload.flowerId!);
-          alert(`🎉 收获成功！\n${result.flowerName}\n💰 +${result.reward.gold}g  ⭐ +${result.reward.xp}xp`);
+          updateGold(result.reward?.gold || 0);
+          alert(
+            `🧤 收获成功！\n${result.flowerName}\n` +
+            `⭐ +${result.reward?.xp || 0}xp  |  🌰 获得种子\n` +
+            `📦 花朵已存入仓库，可出售换金币`
+          );
           await refreshGarden();
         } catch (e: any) {
           alert(e.response?.data?.message || '收获失败');
@@ -176,6 +185,9 @@ const App: React.FC = () => {
         soil: fusionSoil,
       });
 
+      // Store full response for gene detail modal
+      setFusionResponse(res as FusionResponse);
+
       if (res.success && res.reward) {
         updateGold(res.reward.gold);
         setResult({
@@ -186,12 +198,17 @@ const App: React.FC = () => {
           reward: res.reward,
           isFirstTime: res.isFirstTime || false,
         });
-        alert(
-          `⚗️ 嫁接成功！\n` +
+        let msg = `⚗️ 嫁接成功！\n` +
           `${res.rarity} 级新花已种入花园\n` +
-          `💰 +${res.reward.gold}g  ⭐ +${res.reward.xp}xp` +
-          (res.isFirstTime ? '\n🎉 首达奖励！' : '')
-        );
+          `🧬 继承 ${res.inheritedCount || '?'}/${(res.inheritedCount || 0) + (res.droppedCount || 0)} 因子`;
+        if (res.appliedRules?.length) msg += `\n✨ ${res.appliedRules.join('、')}`;
+        msg += `\n💰 +${res.reward.gold}g  ⭐ +${res.reward.xp}xp`;
+        if (res.isFirstTime) msg += '\n🎉 首达奖励！';
+        if (res.stabilityResult?.similar) {
+          msg += `\n🧬 性状稳定 ${res.stabilityResult.progress}/10`;
+          if (res.stabilityResult.becameFoundation) msg += ' 🏆 奠基种认证！';
+        }
+        alert(msg);
       } else {
         alert(
           `💔 嫁接失败 (${res.failType === 'GRAVE' ? '大失败' : '普通失败'})\n` +
@@ -218,6 +235,14 @@ const App: React.FC = () => {
     const timer = setTimeout(() => setResult(null), 6000);
     return () => clearTimeout(timer);
   }, [resultFlower]);
+
+  // Close any overlay panel
+  const closeAllPanels = () => {
+    setShowShop(false);
+    setShowGardenPanel(false);
+    setShowWarehouse(false);
+    setShowFoundation(false);
+  };
 
   if (loading) {
     return (
@@ -251,7 +276,10 @@ const App: React.FC = () => {
           </div>
           <div>
             <div className="text-white font-bold text-sm leading-tight">{user?.name}</div>
-            <div className="text-gray-500 text-xxs">Lv.{user?.level}</div>
+            <div className="text-gray-500 text-xxs">
+              Lv.{user?.level}
+              {user?.title && <span className="ml-1 text-purple-400">· {user.title}</span>}
+            </div>
           </div>
           <div className="flex gap-2 text-xxs ml-1">
             <span className="text-amber-400 bg-amber-900/20 px-1.5 py-0.5 rounded">💰 {user?.gold}</span>
@@ -264,7 +292,7 @@ const App: React.FC = () => {
       {/* ==================== Top-Right: Panel Toggles ==================== */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
         <button
-          onClick={() => { setShowGardenPanel(!showGardenPanel); setShowShop(false); }}
+          onClick={() => { setShowGardenPanel(!showGardenPanel); setShowShop(false); setShowWarehouse(false); setShowFoundation(false); }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all ${
             showGardenPanel
               ? 'bg-green-900/40 border border-green-600/30 text-green-300'
@@ -274,7 +302,7 @@ const App: React.FC = () => {
           🌻 花园
         </button>
         <button
-          onClick={() => { setShowShop(!showShop); setShowGardenPanel(false); }}
+          onClick={() => { setShowShop(!showShop); setShowGardenPanel(false); setShowWarehouse(false); setShowFoundation(false); }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md transition-all ${
             showShop
               ? 'bg-amber-900/40 border border-amber-600/30 text-amber-300'
@@ -300,6 +328,32 @@ const App: React.FC = () => {
                         bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-white/5 p-3
                         animate-fade-in shadow-2xl">
           <ShopPanel />
+        </div>
+      )}
+
+      {/* ==================== Overlay: Warehouse Panel ==================== */}
+      {showWarehouse && (
+        <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
+                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-amber-800/20 p-3
+                        animate-fade-in shadow-2xl">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-bold text-amber-300">🏚️ 仓库</h3>
+            <button onClick={() => setShowWarehouse(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+          </div>
+          <WarehousePanel />
+        </div>
+      )}
+
+      {/* ==================== Overlay: Foundation Panel ==================== */}
+      {showFoundation && (
+        <div className="absolute top-16 right-3 z-20 w-80 max-h-[60vh] overflow-y-auto
+                        bg-[#0a0a1a]/85 backdrop-blur-lg rounded-xl border border-purple-800/20 p-3
+                        animate-fade-in shadow-2xl">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-bold text-purple-300">🧬 性状稳定工程</h3>
+            <button onClick={() => setShowFoundation(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+          </div>
+          <FoundationPanel />
         </div>
       )}
 
@@ -395,7 +449,7 @@ const App: React.FC = () => {
 
         {activeTool === 'glove' && (
           <div className="bg-[#0a0a1a]/90 backdrop-blur-md border-t border-green-800/20 p-2 animate-fade-in text-center">
-            <p className="text-green-400 text-xs">👆 点击盛放期（🌸）花朵收获</p>
+            <p className="text-green-400 text-xs">👆 点击盛放期（🌸）花朵收获 → 花存入仓库</p>
           </div>
         )}
 
@@ -403,6 +457,14 @@ const App: React.FC = () => {
           activeTool={activeTool}
           setActiveTool={(t) => { setActiveTool(t); if (t !== 'seed') setPickedSeed(null); }}
           seedCount={totalSeeds}
+          onOpenWarehouse={() => {
+            closeAllPanels();
+            setShowWarehouse(!showWarehouse);
+          }}
+          onOpenFoundation={() => {
+            closeAllPanels();
+            setShowFoundation(!showFoundation);
+          }}
         />
       </div>
     </div>
