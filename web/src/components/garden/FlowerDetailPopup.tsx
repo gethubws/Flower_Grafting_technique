@@ -7,6 +7,7 @@ interface Props {
   screenX: number;
   screenY: number;
   onClose: () => void;
+  onPopupEnter?: () => void;
   onWater?: (flowerId: string) => void;
   onHarvest?: (flowerId: string) => void;
 }
@@ -25,26 +26,29 @@ const RARITY_GRADIENT: Record<string, [string, string, string]> = {
 };
 
 export const FlowerDetailPopup: React.FC<Props> = ({
-  flower, screenX, screenY, onClose, onWater, onHarvest,
+  flower, screenX, screenY, onClose, onPopupEnter, onWater, onHarvest,
 }) => {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ left: 0, top: 0 });
+  const [pos, setPos] = useState({ left: 0, bottom: 0 });
+  const popupW = 260;
 
   useEffect(() => {
     if (!flower) return;
-    const popupW = 260;
-    const popupH = 320;
-    let left = screenX - popupW / 2;
-    let top = screenY - popupH - 16;
+    const gap = 6;
 
+    // Anchor: top-right corner of the pot — popup sits above, bottom aligned with pot top
+    let left = screenX + gap;
+    let bottom = window.innerHeight - screenY;
+
+    // If too close to right edge, flip to the left of the pot
+    if (left + popupW > window.innerWidth - 8) {
+      left = screenX - popupW - gap;
+    }
     if (left < 8) left = 8;
-    if (left + popupW > window.innerWidth - 8) left = window.innerWidth - popupW - 8;
-    if (top < 60) top = screenY + 24; // flip below
-    if (top + popupH > window.innerHeight - 100) top = window.innerHeight - popupH - 100;
 
-    setPos({ left, top });
+    setPos({ left, bottom });
     setLeaving(false);
     requestAnimationFrame(() => setVisible(true));
   }, [flower, screenX, screenY]);
@@ -70,14 +74,14 @@ export const FlowerDetailPopup: React.FC<Props> = ({
       className="fixed z-[200]"
       style={{
         left: pos.left,
-        top: pos.top,
+        bottom: pos.bottom,
         transform: leaving ? 'scale(0.92)' : visible ? 'scale(1)' : 'scale(0.9)',
         opacity: leaving ? 0 : visible ? 1 : 0,
         transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease-out',
         width: 260,
         pointerEvents: leaving ? 'none' : 'auto',
       }}
-      onMouseEnter={() => setLeaving(false)}
+      onMouseEnter={() => { setLeaving(false); onPopupEnter?.(); }}
       onMouseLeave={() => onClose()}
     >
       {/* Card */}
@@ -191,18 +195,7 @@ export const FlowerDetailPopup: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Arrow pointer */}
-      <div style={{
-        position: 'absolute',
-        bottom: -8,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: 0, height: 0,
-        borderLeft: '10px solid transparent',
-        borderRight: '10px solid transparent',
-        borderTop: '10px solid rgba(255,255,255,0.94)',
-        filter: 'drop-shadow(0 2px 3px rgba(62,39,35,0.08))',
-      }} />
+
     </div>
   );
 };

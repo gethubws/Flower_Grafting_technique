@@ -73,6 +73,16 @@ export class GardenScene extends Phaser.Scene {
     this.potGraphics.set(idx, g);
   }
 
+  private getScreenXY(gx: number, gy: number): { x: number; y: number } {
+    const canvas = this.sys.game.canvas.getBoundingClientRect();
+    const scaleX = canvas.width / 1024;
+    const scaleY = canvas.height / 768;
+    return {
+      x: canvas.left + gx * scaleX,
+      y: canvas.top + gy * scaleY,
+    };
+  }
+
   private setupPotZone(idx: number) {
     const p = POT_POSITIONS[idx];
     // Interactive zone covers the pot + soil area
@@ -109,12 +119,12 @@ export class GardenScene extends Phaser.Scene {
     // Hover to show tooltip
     zone.on('pointerover', () => {
       const slot = this.slots.find((s: GardenSlot) => s.position === idx);
-      const canvas = this.sys.game.canvas.getBoundingClientRect();
+      const topRight = this.getScreenXY(p.x + 48, p.y - 34);
       bridge.emit(BridgeEvent.POT_HOVER_ENTER, {
         position: idx,
         flower: slot?.flower || null,
-        screenX: canvas.left + p.x,
-        screenY: canvas.top + p.y,
+        screenX: topRight.x,
+        screenY: topRight.y,
       });
     });
     zone.on('pointerout', () => {
@@ -128,11 +138,12 @@ export class GardenScene extends Phaser.Scene {
     for (let idx = 0; idx < 6; idx++) {
       const p = POT_POSITIONS[idx];
       const slot = this.slots.find((s: GardenSlot) => s.position === idx);
+      const topRight = this.getScreenXY(p.x + 48, p.y - 34);
       bridge.emit(BridgeEvent.POT_POSITION, {
         position: idx,
         flower: slot?.flower || null,
-        screenX: canvas.left + p.x,
-        screenY: canvas.top + p.y - 30,
+        screenX: topRight.x,
+        screenY: topRight.y,
       });
     }
   }

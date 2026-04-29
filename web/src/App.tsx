@@ -51,6 +51,20 @@ const App: React.FC = () => {
 
   // Detail popup state
   const [detailPopup, setDetailPopup] = useState<PotDetailTogglePayload | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleClose = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setDetailPopup(null);
+      closeTimerRef.current = null;
+    }, 150);
+  };
+  const cancelClose = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
 
   // Panel toggles
   const [currentPage, setCurrentPage] = useState<'garden' | 'warehouse' | 'shop'>('garden');
@@ -101,14 +115,11 @@ const App: React.FC = () => {
   // Hover tooltip for pots
   useEffect(() => {
     const enter = (payload: PotDetailTogglePayload) => {
+      cancelClose();
       setDetailPopup(payload);
     };
     const leave = () => {
-      setDetailPopup((prev) => {
-        // Delay hide to allow mouse to reach popup buttons
-        setTimeout(() => setDetailPopup(null), 600);
-        return prev; // don't change immediately
-      });
+      scheduleClose();
     };
     bridge.on(BridgeEvent.POT_HOVER_ENTER, enter);
     bridge.on(BridgeEvent.POT_HOVER_LEAVE, leave);
@@ -353,6 +364,7 @@ const App: React.FC = () => {
           screenX={detailPopup.screenX}
           screenY={detailPopup.screenY}
           onClose={() => setDetailPopup(null)}
+          onPopupEnter={cancelClose}
           onWater={activeTool === null ? handleWaterFromPopup : undefined}
           onHarvest={activeTool === 'glove' ? handleHarvestFromPopup : undefined}
         />
